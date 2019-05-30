@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 
+output
 # Environments
 .env
 .venv
