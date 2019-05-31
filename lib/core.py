@@ -3,12 +3,12 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-05-31 15:33:41
+@LastEditTime: 2019-05-31 16:24:04
 '''
 import os
 import importlib
 import sys
-from command import print_log, print_info, print_error
+from lib.command import print_log, print_info, print_error
 
 def get_output(domain):
     base_path = os.path.dirname(os.path.abspath(__file__))
@@ -33,11 +33,12 @@ def run_scripts(scan_domain, exclude):
             suffix = os.path.splitext(filename)[1]
             if suffix == '.py' and name not in exclude:
                 metaclass=importlib.import_module(os.path.splitext(filename)[0])
-                print_info("run script: "+metaclass.Scan(scan_domain).name)
-                result = metaclass.Scan(scan_domain).run()
-                result_set = result_set | result
-                print_info("get count: {0}   all count: {1}".format(len(result), len(result_set)))
-
+                # 通过脚本的 enable属性判断脚本是否执行  
+                if metaclass.Scan(scan_domain).enable:
+                    print_info("run script: "+metaclass.Scan(scan_domain).name)
+                    result = metaclass.Scan(scan_domain).run()
+                    result_set = result_set | result
+                    print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
 
 def scan(doamin):
     pass

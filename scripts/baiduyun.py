@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-31 15:35:28
+@LastEditTime: 2019-05-31 15:38:19
 '''
 from lib.base import Base
 from lib.command import print_error
@@ -28,6 +28,4 @@ class Scan(Base):
             else:
                 return set()
         except Exception as e:
-            print_error("ERROR: "+self.name+" : "+str(e)    
-    
-    
+            print_error("ERROR: "+self.name+" : "+str(e))

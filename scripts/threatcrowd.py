@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-31 15:34:44
+@LastEditTime: 2019-05-31 16:24:28
 '''
 from lib.base import Base
 from lib.command import print_error
@@ -16,12 +16,12 @@ class Scan(Base):
         self.name = "threatcrowd"
         self.base_url = "https://www.threatcrowd.org/searchApi/v2/domain/report/?domain={0}"
         self.headers = {
+            'authority': 'www.threatcrowd.org',
             'accept': 'application/json',
             'content-type': 'application/json',
-            'cookie': '__cfduid=da77cc76b1c87e5c582cf3e500d67eac61557832243; cf_clearance=a4210874de44788c6b7f1fd0d4d2b3878676687e-1559272290-14400-150; _ga=GA1.2.1253679075.1559272407; _gid=GA1.2.1976762282.1559272407',
-            'upgrade-insecure-requests': '1',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
             }
+        self.enable = False
 
     def run(self):
         try:
@@ -36,5 +36,5 @@ class Scan(Base):
             else:
                 return set()
         except Exception as e:
-            print_error("ERROR: "+self.name+" : "+str(e)
+            print_error("ERROR: "+self.name+" : "+str(e))
 
