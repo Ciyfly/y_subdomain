@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-31 16:20:52
+@LastEditTime: 2019-05-31 16:34:32
 '''
 from lib.base import Base
 from lib.command import print_error
@@ -15,7 +15,7 @@ class Scan(Base):
     """一分钟只能使用六次"""
     def __init__(self, scan_domain):
         super().__init__(scan_domain)
-        self.name = "virustotal"
+        self.name = "微步"
         self.base_url = 'https://x.threatbook.cn/api/v1/domain/query'
         self.enable = False
         
