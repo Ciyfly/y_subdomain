@@ -3,13 +3,14 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-30 19:45:05
+@LastEditTime: 2019-05-31 11:26:24
 '''
 class Base(object):
     def __init__(self, scan_domain):
         self.scan_domain = scan_domain
-    
-    def run(self):
-        print("base")
+        self.sub = set()
+
+        def run(self):
+            print("base")
     
     
