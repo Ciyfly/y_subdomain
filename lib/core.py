@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-05-31 16:45:17
+@LastEditTime: 2019-05-31 17:03:45
 '''
 import os
 import importlib
@@ -41,13 +41,12 @@ def run_scripts(scan_domain, appoint):
                         result_set = result_set | result
                         print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
     else: # 指定了引擎
-        for name in appoint:
+        for name in appoint: # 这里不判断是否开启引擎 直接使用
             metaclass=importlib.import_module(name)
-            if metaclass.Scan(scan_domain).enable:
-                print_info("run script: "+metaclass.Scan(scan_domain).name)
-                result = metaclass.Scan(scan_domain).run()
-                result_set = result_set | result
-                print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
+            print_info("run script: "+metaclass.Scan(scan_domain).name)
+            result = metaclass.Scan(scan_domain).run()
+            result_set = result_set | result
+            print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
                     
 def scan(doamin):
     pass
