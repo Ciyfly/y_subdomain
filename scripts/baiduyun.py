@@ -3,9 +3,10 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-31 12:44:26
+@LastEditTime: 2019-05-31 15:35:28
 '''
 from lib.base import Base
+from lib.command import print_error
 import requests
 import json
 
@@ -16,14 +17,17 @@ class Scan(Base):
         self.base_url = "http://ce.baidu.com/index/getRelatedSites?site_address={0}"
 
     def run(self):
-        get_url = self.base_url.format(self.scan_domain)
-        response = requests.get(get_url)
-        if response.status_code == 200:
-            data = json.loads(response.content)['data']
-            for domain in data:
-                self.sub.add(domain['domain'])
-            return  self.sub
-        else:
-            return set()
+        try:
+            get_url = self.base_url.format(self.scan_domain)
+            response = requests.get(get_url)
+            if response.status_code == 200:
+                data = json.loads(response.content)['data']
+                for domain in data:
+                    self.sub.add(domain['domain'])
+                return  self.sub
+            else:
+                return set()
+        except Exception as e:
+            print_error("ERROR: "+self.name+" : "+str(e)    
     
     

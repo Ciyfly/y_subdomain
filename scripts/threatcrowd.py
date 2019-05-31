@@ -3,9 +3,10 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-31 12:44:15
+@LastEditTime: 2019-05-31 15:34:44
 '''
 from lib.base import Base
+from lib.command import print_error
 import requests
 import json
 
@@ -23,14 +24,17 @@ class Scan(Base):
             }
 
     def run(self):
-        get_url = self.base_url.format(self.scan_domain)
-        response = requests.get(url=get_url, headers = self.headers )
-        if response.status_code == 200:
-            data = json.loads(response.content).get('subdomains')
-            # data = str(data,encoding='utf-8')
-            for domain in data:
-                self.sub.add(domain)
-            return  self.sub
-        else:
-            return set()
+        try:
+            get_url = self.base_url.format(self.scan_domain)
+            response = requests.get(url=get_url, headers = self.headers )
+            if response.status_code == 200:
+                data = json.loads(response.content).get('subdomains')
+                # data = str(data,encoding='utf-8')
+                for domain in data:
+                    self.sub.add(domain)
+                return  self.sub
+            else:
+                return set()
+        except Exception as e:
+            print_error("ERROR: "+self.name+" : "+str(e)
 
