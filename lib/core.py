@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-05-31 16:24:04
+@LastEditTime: 2019-05-31 16:45:17
 '''
 import os
 import importlib
@@ -19,7 +19,7 @@ def get_output(domain):
     target_output_html = os.path.join(out_put_dir, domain+".html")
     return target_output_txt, target_output_html
 
-def run_scripts(scan_domain, exclude):
+def run_scripts(scan_domain, appoint):
     base_path = os.path.dirname(os.path.abspath(__file__))
     scripts_path = os.path.join(base_path, "../","scripts")
     # 添加到搜索路径
@@ -27,18 +27,27 @@ def run_scripts(scan_domain, exclude):
     scrips_list = list()
     scripts_class = list()
     result_set = set()
-    for root, dirs, files in os.walk(scripts_path):  
-        for filename in files:
-            name = os.path.splitext(filename)[0]
-            suffix = os.path.splitext(filename)[1]
-            if suffix == '.py' and name not in exclude:
-                metaclass=importlib.import_module(os.path.splitext(filename)[0])
-                # 通过脚本的 enable属性判断脚本是否执行  
-                if metaclass.Scan(scan_domain).enable:
-                    print_info("run script: "+metaclass.Scan(scan_domain).name)
-                    result = metaclass.Scan(scan_domain).run()
-                    result_set = result_set | result
-                    print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
-
+    if not appoint: # 没有指定引擎 遍历scrips文件夹
+        for root, dirs, files in os.walk(scripts_path):  
+            for filename in files:
+                name = os.path.splitext(filename)[0]
+                suffix = os.path.splitext(filename)[1]
+                if suffix == '.py':
+                    metaclass=importlib.import_module(os.path.splitext(filename)[0])
+                    # 通过脚本的 enable属性判断脚本是否执行  
+                    if metaclass.Scan(scan_domain).enable:
+                        print_info("run script: "+metaclass.Scan(scan_domain).name)
+                        result = metaclass.Scan(scan_domain).run()
+                        result_set = result_set | result
+                        print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
+    else: # 指定了引擎
+        for name in appoint:
+            metaclass=importlib.import_module(name)
+            if metaclass.Scan(scan_domain).enable:
+                print_info("run script: "+metaclass.Scan(scan_domain).name)
+                result = metaclass.Scan(scan_domain).run()
+                result_set = result_set | result
+                print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
+                    
 def scan(doamin):
     pass
