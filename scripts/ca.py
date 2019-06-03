@@ -65,7 +65,7 @@ class Scan(Base):
                         domains.append(domain)
             return set(domains)
         except Exception as e:
-            return domains
+            return set(domains)
 
 
 # if __name__ == '__main__':
