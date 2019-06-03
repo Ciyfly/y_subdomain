@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-05-31 17:03:45
+@LastEditTime: 2019-06-03 16:46:55
 '''
 import os
 import importlib
@@ -19,7 +19,7 @@ def get_output(domain):
     target_output_html = os.path.join(out_put_dir, domain+".html")
     return target_output_txt, target_output_html
 
-def run_scripts(scan_domain, appoint):
+def run_scripts(scan_domain, engine):
     base_path = os.path.dirname(os.path.abspath(__file__))
     scripts_path = os.path.join(base_path, "../","scripts")
     # 添加到搜索路径
@@ -27,7 +27,7 @@ def run_scripts(scan_domain, appoint):
     scrips_list = list()
     scripts_class = list()
     result_set = set()
-    if not appoint: # 没有指定引擎 遍历scrips文件夹
+    if not engine: # 没有指定引擎 遍历scrips文件夹
         for root, dirs, files in os.walk(scripts_path):  
             for filename in files:
                 name = os.path.splitext(filename)[0]
@@ -41,7 +41,7 @@ def run_scripts(scan_domain, appoint):
                         result_set = result_set | result
                         print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
     else: # 指定了引擎
-        for name in appoint: # 这里不判断是否开启引擎 直接使用
+        for name in engine: # 这里不判断是否开启引擎 直接使用
             metaclass=importlib.import_module(name)
             print_info("run script: "+metaclass.Scan(scan_domain).name)
             result = metaclass.Scan(scan_domain).run()
