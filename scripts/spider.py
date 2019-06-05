@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-06-03 16:49:17
-@LastEditTime: 2019-06-05 09:55:54
+@LastEditTime: 2019-06-05 10:38:11
 '''
 
 from lib.base import Base
@@ -57,11 +57,11 @@ class Scan(Base):
                 url = domain
             else:
                 url = "http://{0}".format(domain)
-            print_log(url)
             response = requests.get(url, headers = self.headers )
             result = p.findall(response.text)
             for d in result:
                 # print(d)
+                print_log(url)
                 spider_domain.add(d)
             # print(spider_domain)
             return spider_domain 
