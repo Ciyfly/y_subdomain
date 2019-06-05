@@ -3,12 +3,21 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-05 10:33:13
+@LastEditTime: 2019-06-05 17:38:40
 '''
 from lib.parser import get_options
 from config.config import BANNER
 from lib.core import get_output, run_scripts
 from lib.command import print_log, print_info
+import signal
+
+def ctrl_c(signum,frame):
+    print()
+    print("[-] input ctrl c")
+    exit(1)
+
+signal.signal(signal.SIGINT, ctrl_c)
+
 
 def main():
     print(BANNER)
