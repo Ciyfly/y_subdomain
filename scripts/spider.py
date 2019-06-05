@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-06-03 16:49:17
-@LastEditTime: 2019-06-03 19:02:09
+@LastEditTime: 2019-06-05 09:55:54
 '''
 
 from lib.base import Base
@@ -23,8 +23,6 @@ class Scan(Base):
             'Accept': 'text/html, application/xhtml+xml, image/jxr, */*',
             'Accept - Encoding':'gzip, deflate',
             'Accept-Language':'zh-Hans-CN, zh-Hans; q=0.5',
-            'Connection':'Keep-Alive',
-            'Host':'zhannei.baidu.com',
             'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063'}
     def run(self):
         try:
@@ -44,6 +42,7 @@ class Scan(Base):
                             if spider_domain_over:
                                 self.sub = self.sub | spider_domain_over # 结束 求并集
             print_flush()
+            # print(self.sub)
             return self.sub
         except Exception as e:
             print_error("ERROR: "+self.name+" : "+str(e))
@@ -51,14 +50,20 @@ class Scan(Base):
     def scan(self, domain):
         try:
             spider_domain = set()
-            p = re.compile(r'//([a-zA-Z0-9]*.{0})'.format(domain))
-            url = "https://{0}".format(domain)
+            # p = re.compile(r'//([a-zA-Z0-9]*.{0})'.format(domain))
+            regex = r"[a-zA-z]+://[^\s]*?{0}".format(domain)
+            p = re.compile(regex)
+            if "http" in domain:
+                url = domain
+            else:
+                url = "http://{0}".format(domain)
             print_log(url)
             response = requests.get(url, headers = self.headers )
             result = p.findall(response.text)
             for d in result:
                 # print(d)
                 spider_domain.add(d)
+            # print(spider_domain)
             return spider_domain 
         except Exception as e:
             pass
