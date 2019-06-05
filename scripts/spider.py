@@ -50,19 +50,16 @@ class Scan(Base):
     def scan(self, domain):
         try:
             spider_domain = set()
-            # p = re.compile(r'//([a-zA-Z0-9]*.{0})'.format(domain))
-            regex = r"[a-zA-z]+://[^\s]*?{0}".format(domain)
-            p = re.compile(regex)
+            p = re.compile(u'((http|https)://(?:\w+\.)*?{0})'.format(self.scan_domain))
             if "http" in domain:
                 url = domain
             else:
                 url = "http://{0}".format(domain)
-            response = requests.get(url, headers = self.headers )
+            response = requests.get(url, headers = self.headers ,timeout=3)
             result = p.findall(response.text)
             for d in result:
-                # print(d)
                 print_log(url)
-                spider_domain.add(d)
+                spider_domain.add(d[0])
             # print(spider_domain)
             return spider_domain 
         except Exception as e:
