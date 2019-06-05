@@ -3,13 +3,12 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-03 16:46:34
+@LastEditTime: 2019-06-05 10:33:13
 '''
 from lib.parser import get_options
 from config.config import BANNER
 from lib.core import get_output, run_scripts
 from lib.command import print_log, print_info
-from loguru import logger
 
 def main():
     print(BANNER)
