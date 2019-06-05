@@ -10,7 +10,7 @@ def print_log(message):
     print ("\r[*] {0}".format(message), end="")
 
 def print_flush():
-    print ("\r", end="")
+    print ("\r\r", end="")
 
 def print_info(message):
     print(("[+] {0}".format(message)))
