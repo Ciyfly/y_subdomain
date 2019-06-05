@@ -9,7 +9,7 @@
 from lib.base import Base
 from lib.command import print_error, print_debug, print_log, print_flush
 from config.config import WEIBU_APIKEY
-from gevent import monkey;monkey.patch_all()
+# from gevent import monkey;monkey.patch_all()
 import requests
 import re
 import gevent

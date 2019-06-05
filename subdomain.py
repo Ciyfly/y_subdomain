@@ -10,7 +10,8 @@ from config.config import BANNER
 from lib.core import get_output, run_scripts
 from lib.command import print_log, print_info
 import signal
-
+import gevent 
+from gevent import monkey;monkey.patch_all()
 def ctrl_c(signum,frame):
     print()
     print("[-] input ctrl c")
