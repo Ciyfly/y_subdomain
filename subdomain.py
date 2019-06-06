@@ -7,7 +7,7 @@
 '''
 from lib.parser import get_options
 from config.config import BANNER
-from lib.core import get_output, run_scripts
+from lib.core import get_output, run_scripts, asyn_dns
 from lib.command import print_log, print_info
 import signal
 import gevent 
@@ -31,7 +31,10 @@ def main():
     # for i in range(10000):
     #     print_log("scan scripts: "+str(i))
     # print()
-    run_scripts(scan_domain, engine)
+    engine_result = run_scripts(scan_domain, engine)
+    domain_ips = asyn_dns(engine_result)
+    print(domain_ips)
+    print(len(domain_ips))
     
 
         

@@ -5,11 +5,16 @@
 @Date: 2019-05-30 17:49:08
 @LastEditTime: 2019-06-03 16:46:55
 '''
+from lib.command import print_log, print_info, print_error
 import os
 import importlib
 import sys
-from lib.command import print_log, print_info, print_error
+import asyncio
+import aiodns
 
+
+loop = asyncio.get_event_loop()
+resolver = aiodns.DNSResolver(loop=loop)
 def get_output(domain):
     base_path = os.path.dirname(os.path.abspath(__file__))
     out_put_dir = os.path.join(base_path, "output", domain)
@@ -47,6 +52,36 @@ def run_scripts(scan_domain, engine):
             result = metaclass.Scan(scan_domain).run()
             result_set = result_set | result
             print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
+    return result_set
                     
-def scan(doamin):
-    pass
+async def dns_query(domain, query_type='A'):
+    try:
+        q = await resolver.query(domain, query_type)
+    except aiodns.error.DNSError:
+        return None
+    return q
+
+
+def is_analysis(domain):
+    """ 
+    泛解析判断 
+    通过不存在
+    """
+    false_domain = "Recar."+domain
+    result = loop.run_until_complete(dns_query(false_domain))
+    if not false_domain:
+        print("[-] 泛解析 ")
+        return True
+
+
+# aiodns解析域名 获取ip
+def asyn_dns(domains):
+    domain_ips =dict()
+    for domain in domains:
+        result = loop.run_until_complete(dns_query(domain))
+        if result:
+            print_log(domain)
+            domain_ips[domain] = result[0].host
+    return domain_ips
+
+
