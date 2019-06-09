@@ -6,15 +6,21 @@
 @LastEditTime: 2019-06-03 16:46:55
 '''
 from lib.command import print_log, print_info, print_error
+from tqdm import tqdm
 import os
 import importlib
 import sys
 import asyncio
 import aiodns
+import uvloop
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
-
+# servers = ['114.114.114.114','8.8.8.8', '202.38.64.1', '119.23.248.241']
+servers = ['114.114.114.114']
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 loop = asyncio.get_event_loop()
-resolver = aiodns.DNSResolver(loop=loop)
+resolver = aiodns.DNSResolver(loop=loop,servers=servers)
+
 def get_output(domain):
     base_path = os.path.dirname(os.path.abspath(__file__))
     out_put_dir = os.path.join(base_path, "output", domain)
@@ -57,9 +63,11 @@ def run_scripts(scan_domain, engine):
 async def dns_query(domain, query_type='A'):
     try:
         q = await resolver.query(domain, query_type)
+        return q
     except aiodns.error.DNSError:
         return None
-    return q
+    except Exception as e:
+        print_error(e)
 
 
 def is_analysis(domain):
@@ -77,10 +85,9 @@ def is_analysis(domain):
 # aiodns解析域名 获取ip
 def asyn_dns(domains):
     domain_ips =dict()
-    for domain in domains:
+    for domain in tqdm(domains):
         result = loop.run_until_complete(dns_query(domain))
         if result:
-            print_log(domain)
             domain_ips[domain] = result[0].host
     return domain_ips
 

@@ -29,3 +29,4 @@ class Scan(Base):
                 return set()
         except Exception as e:
             print_error("ERROR: "+self.name+" : "+str(e))
+            return set()

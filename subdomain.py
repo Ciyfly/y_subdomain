@@ -9,9 +9,8 @@ from lib.parser import get_options
 from config.config import BANNER
 from lib.core import get_output, run_scripts, asyn_dns
 from lib.command import print_log, print_info
+# from gevent import monkey;monkey.patch_all()
 import signal
-import gevent 
-from gevent import monkey;monkey.patch_all()
 def ctrl_c(signum,frame):
     print()
     print("[-] input ctrl c")
@@ -33,7 +32,7 @@ def main():
     # print()
     engine_result = run_scripts(scan_domain, engine)
     domain_ips = asyn_dns(engine_result)
-    print(domain_ips)
+    print("\n"+str(domain_ips))
     print(len(domain_ips))
     
 
