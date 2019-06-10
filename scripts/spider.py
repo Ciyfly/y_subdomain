@@ -21,7 +21,7 @@ class Scan(Base):
     def __init__(self, scan_domain):
         super().__init__(scan_domain)
         self.name = "Spider"
-        # self.enable = False
+        self.enable = False
         self.headers = {
             'Accept': 'text/html, application/xhtml+xml, image/jxr, */*',
             'Accept - Encoding':'gzip, deflate',

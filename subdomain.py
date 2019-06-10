@@ -3,14 +3,15 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-05 17:38:40
+@LastEditTime: 2019-06-10 19:21:50
 '''
 from lib.parser import get_options
 from config.config import BANNER
-from lib.core import get_output, run_scripts, asyn_dns
+from lib.core import get_output, run_scripts, asyn_dns, thread_dns
 from lib.command import print_log, print_info
 # from gevent import monkey;monkey.patch_all()
 import signal
+import time
 def ctrl_c(signum,frame):
     print()
     print("[-] input ctrl c")
@@ -30,10 +31,15 @@ def main():
     # for i in range(10000):
     #     print_log("scan scripts: "+str(i))
     # print()
+    start = time.perf_counter()
     engine_result = run_scripts(scan_domain, engine)
-    domain_ips = asyn_dns(engine_result)
+    engine_end = (time.perf_counter() - start)
+    print_info(f"引擎接口消耗时间:{engine_end}s")
+    domain_ips = thread_dns(engine_result)
     print("\n"+str(domain_ips))
     print(len(domain_ips))
+    end = (time.perf_counter() - start)
+    print_info(f"程序消耗时间: {end}s")
     
 
         

@@ -3,23 +3,28 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-03 16:46:55
+@LastEditTime: 2019-06-10 19:55:00
 '''
 from lib.command import print_log, print_info, print_error
 from tqdm import tqdm
+from dns import resolver
+from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
+from collections import defaultdict
 import os
 import importlib
 import sys
-import asyncio
-import aiodns
-import uvloop
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+import dns
+import re
+#import asyncio
+#import aiodns
+#import uvloop
+#asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # servers = ['114.114.114.114','8.8.8.8', '202.38.64.1', '119.23.248.241']
 servers = ['114.114.114.114']
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-loop = asyncio.get_event_loop()
-resolver = aiodns.DNSResolver(loop=loop,servers=servers)
+# asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+# loop = asyncio.get_event_loop()
+# resolver = aiodns.DNSResolver(loop=loop,servers=servers)
 
 def get_output(domain):
     base_path = os.path.dirname(os.path.abspath(__file__))
@@ -91,4 +96,31 @@ def asyn_dns(domains):
             domain_ips[domain] = result[0].host
     return domain_ips
 
+def thread_dns(domains):
+    pool = ThreadPoolExecutor(50) # 定义线程池
+    domain_ips = defaultdict(list)
+    all_task = list()
+    for domain in domains:
+        all_task.append(pool.submit(analysis_dns, domain, domain_ips))
+    for task in all_task:
+        task.result()
+     
+    return domain_ips
+
+def analysis_dns(domain, domain_ips):
+    try:
+        ans = resolver.query(domain, "A")
+        if ans:
+            ips = list()
+            for i in ans.response.answer:
+                for j in i.items:
+                        ip = j.to_text()
+                        if re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", ip):
+                            domain_ips[domain].append(ip)
+    except dns.resolver.NoAnswer:
+        pass
+    except dns.exception.Timeout:
+        pass
+    except Exception as e:
+        print_error(e)
 
