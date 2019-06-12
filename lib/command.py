@@ -21,3 +21,6 @@ def print_debug(message):
 def print_error(message):
     print(("[error] {0}".format(message)))
 
+def splist(l, s):
+    return [l[i:i+s] for i in range(len(l)) if i%s==0]
+

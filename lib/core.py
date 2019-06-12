@@ -3,9 +3,9 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-10 19:55:00
+@LastEditTime: 2019-06-11 18:45:58
 '''
-from lib.command import print_log, print_info, print_error
+from lib.command import print_log, print_info, print_error, splist
 from tqdm import tqdm
 from dns import resolver
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -15,16 +15,7 @@ import importlib
 import sys
 import dns
 import re
-#import asyncio
-#import aiodns
-#import uvloop
-#asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
-# servers = ['114.114.114.114','8.8.8.8', '202.38.64.1', '119.23.248.241']
-servers = ['114.114.114.114']
-# asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-# loop = asyncio.get_event_loop()
-# resolver = aiodns.DNSResolver(loop=loop,servers=servers)
 
 def get_output(domain):
     base_path = os.path.dirname(os.path.abspath(__file__))
@@ -65,37 +56,6 @@ def run_scripts(scan_domain, engine):
             print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
     return result_set
                     
-async def dns_query(domain, query_type='A'):
-    try:
-        q = await resolver.query(domain, query_type)
-        return q
-    except aiodns.error.DNSError:
-        return None
-    except Exception as e:
-        print_error(e)
-
-
-def is_analysis(domain):
-    """ 
-    泛解析判断 
-    通过不存在
-    """
-    false_domain = "Recar."+domain
-    result = loop.run_until_complete(dns_query(false_domain))
-    if not false_domain:
-        print("[-] 泛解析 ")
-        return True
-
-
-# aiodns解析域名 获取ip
-def asyn_dns(domains):
-    domain_ips =dict()
-    for domain in tqdm(domains):
-        result = loop.run_until_complete(dns_query(domain))
-        if result:
-            domain_ips[domain] = result[0].host
-    return domain_ips
-
 def thread_dns(domains):
     pool = ThreadPoolExecutor(50) # 定义线程池
     domain_ips = defaultdict(list)
@@ -104,7 +64,6 @@ def thread_dns(domains):
         all_task.append(pool.submit(analysis_dns, domain, domain_ips))
     for task in all_task:
         task.result()
-     
     return domain_ips
 
 def analysis_dns(domain, domain_ips):
@@ -123,4 +82,97 @@ def analysis_dns(domain, domain_ips):
         pass
     except Exception as e:
         print_error(e)
+
+class Exhaustion(object):
+    """暴力穷举"""
+    def __init__ (self, scan_domain):
+        print("init")
+        self.base_path  = os.path.dirname(os.path.abspath(__file__))
+        self.scan_domain = scan_domain
+        self.domain_ips = defaultdict(list)
+        self.sub_dict = list()
+        self.load_subdomain_dict()
+        self.tmp_file = self.get_tmpfile()
+        print("load over")
+
+    def get_tmpfile(self):
+        output_path = os.path.join(self.base_path, "../","output")
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
+        tmp_file = os.path.join(output_path, self.scan_domain+".tmp")
+        if os.path.exists(tmp_file):
+            os.remove(tmp_file)
+        return tmp_file
+ 
+    def save_tmp_file(self):
+        with open(self.tmp_file, "a+") as f:
+            domain_ips_keys = list(self.domain_ips.keys())
+            for key in domain_ips_keys:
+                data = key+"    "+str(self.domain_ips.pop(key))+"\n"
+                f.write(data)
+    def load_subdomain_dict(self):
+        dict_path = os.path.join(self.base_path, "../","config", "sub.txt")
+        with open(dict_path, "r") as f:
+            line = f.readline()
+            while line:
+                self.sub_dict.append(line.replace("\n", ""))
+                line = f.readline()
+    
+    def is_analysis(self):
+        """ 
+        泛解析判断 
+        通过不存在
+        """
+        try:
+            ans = resolver.query("recar123456"+self.scan_domain , "A")
+            if ans:
+                ips = list()
+                for i in ans.response.answer:
+                    for j in i.items:
+                            ip = j.to_text()
+                            if ip:
+                                return False
+        except dns.resolver.NoAnswer:
+            return True
+        except dns.exception.Timeout:
+            return True
+        except Exception as e:
+            print_error(e)
+    
+    def analysis_dns(self, domain):
+        try:
+            ans = resolver.query(domain, "A")
+            if ans:
+                ips = list()
+                for i in ans.response.answer:
+                    for j in i.items:
+                            ip = j.to_text()
+                            if re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", ip):
+                                self.domain_ips[domain].append(ip)
+        except dns.resolver.NoAnswer:
+            pass
+        except dns.exception.Timeout:
+            pass
+        except Exception as e:
+            print_error(e)
+        
+    def run(self):
+        # 先进行泛解析判断
+        print("is_analysis")
+        if not self.is_analysis():
+            pool = ThreadPoolExecutor(80) # 配置80个线程
+            all_task = list()
+            # 对字典进行切割 每5000个为一组进行解析
+            splist_sub_dict = splist(self.sub_dict, 5000)
+            for sub_dict in splist_sub_dict:
+                for sub in  sub_dict:
+                    domain = sub+"."+self.scan_domain
+                    print(domain)
+                    all_task.append(pool.submit(self.analysis_dns, domain))
+                for task in all_task:
+                    task.result()
+                self.save_tmp_file()
+            return self.domain_ips
+        else:
+            print_error("域名有泛解析 不会执行穷举")
 
