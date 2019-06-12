@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 16:07:49
-@LastEditTime: 2019-06-03 16:46:27
+@LastEditTime: 2019-06-12 19:02:55
 '''
 from optparse import OptionParser
 from config.config import VERSION
@@ -15,6 +15,10 @@ def get_options():
     parser.add_option('-d', type=str, dest="domain", help="指定要测试的域名")
     
     parser.add_option('-e', type=str, dest="engine", help="指定使用的引擎 逗号间隔")
+
+    parser.add_option('--exh',action='store_true', dest="exhaustion", default=False, help="是否进行暴力穷举")
+    
+    parser.add_option('--json',action='store_true', dest="is_json", default=False, help="是否生成json报告")
 
     parser.add_option('--html',action='store_true', dest="is_html", default=False, help="是否生成html报告")
     (options,args) = parser.parse_args()
