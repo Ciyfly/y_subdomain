@@ -39,14 +39,21 @@
 5. 微步(没有私有api)
 6. 爬虫形式解析获取子域名
 7. 通过证书获取  
-
+8. dns暴力穷举(目前采用线程池实现 效果不理想 后续实现异步dns)
 
 **TODO**
 1. 搜索引擎的形式获取
-2. 通过 github
+2. ~~通过 github~~ 后面单独做github泄露检测
 3. 通过 crossdomain.xml
-4. dns暴力穷举
-5. 打分机制
+4. 打分机制
 
 ## 使用
 ![20190603191920.png](https://i.loli.net/2019/06/03/5cf5023e6744d67390.png)  
+
+## 参考
+[aiodnsbrute](https://github.com/blark/aiodnsbrute/tree/master/aiodnsbrute)  
+后面再参考这个的日志做新的版本  
+
+[ESD](https://github.com/FeeiCN/ESD)  
+
+[wydomain](https://github.com/ring04h/wydomain)  
