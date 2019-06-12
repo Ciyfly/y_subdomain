@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-11 18:45:58
+@LastEditTime: 2019-06-12 19:23:10
 '''
 from lib.command import print_log, print_info, print_error, splist
 from tqdm import tqdm
@@ -103,7 +103,7 @@ class Exhaustion(object):
         if os.path.exists(tmp_file):
             os.remove(tmp_file)
         return tmp_file
- 
+
     def save_tmp_file(self):
         with open(self.tmp_file, "a+") as f:
             domain_ips_keys = list(self.domain_ips.keys())
@@ -119,6 +119,16 @@ class Exhaustion(object):
                 self.sub_dict.append(line.replace("\n", ""))
                 line = f.readline()
     
+    def read_tmp_file(self):
+        with open(self.tmp_file, "r") as f:
+            line = f.readline()
+            while line:
+                data = line.replace("\n").splist(" ")
+                domain = data[0]
+                ips = eval(data[1])
+                self.domain_ips[domain] = ips
+                line = f.readline()
+
     def is_analysis(self):
         """ 
         泛解析判断 
@@ -173,7 +183,10 @@ class Exhaustion(object):
                 for task in all_task:
                     task.result()
                 self.save_tmp_file()
+            # 最后解析tmp文件然后返回数据进行封装
+            self.read_tmp_file()
             return self.domain_ips
         else:
             print_error("域名有泛解析 不会执行穷举")
+            return None
 
