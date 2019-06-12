@@ -110,6 +110,7 @@ class Exhaustion(object):
             for key in domain_ips_keys:
                 data = key+"    "+str(self.domain_ips.pop(key))+"\n"
                 f.write(data)
+
     def load_subdomain_dict(self):
         dict_path = os.path.join(self.base_path, "../","config", "sub.txt")
         with open(dict_path, "r") as f:
@@ -161,10 +162,10 @@ class Exhaustion(object):
         print("is_analysis")
         if not self.is_analysis():
             pool = ThreadPoolExecutor(80) # 配置80个线程
-            all_task = list()
             # 对字典进行切割 每5000个为一组进行解析
             splist_sub_dict = splist(self.sub_dict, 5000)
             for sub_dict in splist_sub_dict:
+                all_task = list()
                 for sub in  sub_dict:
                     domain = sub+"."+self.scan_domain
                     print(domain)
