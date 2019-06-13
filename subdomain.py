@@ -8,8 +8,10 @@
 from lib.parser import get_options
 from config.config import BANNER
 # from lib.core import get_output, run_scripts, asyn_dns, thread_dns
-from lib.core import get_output, Exhaustion
-from lib.command import print_log, print_info
+from lib.core import (
+                      get_output, Exhaustion, run_scripts, thread_dns
+                      )
+from lib.command import print_log, print_info, save_text, save_json, save_html
 # from gevent import monkey;monkey.patch_all()
 import signal
 import time
@@ -35,8 +37,8 @@ def main():
     start = time.perf_counter()
     engine_result = run_scripts(scan_domain, engine)
     engins_domain_ips = thread_dns(engine_result)
-    print("\n"+str(domain_ips))
-    print(len(domain_ips))
+    # print("\n"+str(engins_domain_ips))
+    print_info(len(engins_domain_ips))
     engine_end = (time.perf_counter() - start)
     print_info(f"引擎接口消耗时间:{engine_end}s")
     # 开始穷举
@@ -58,7 +60,12 @@ def main():
     
     # 输出 txt结果 输出json 输出html
     # TODO 将结果进行保存
-
+    # 保存txt
+    save_text(engins_domain_ips, scan_domain)
+    if is_json:
+        save_json(engins_domain_ips, scan_domain)
+    if is_html:
+        save_html(engins_domain_ips, scan_domain)
 
 if __name__ == "__main__":
     main()
