@@ -10,13 +10,16 @@ from config.html_template import (
     html_body_a, html_body_end, html_style
                     )
 import os
+import sys
 import shutil
 import json
 
 base_path = os.path.dirname(os.path.abspath(__file__))
 
 def print_log(message):
-    print ("\r[*] {0}".format(message), end="")
+    # ljust(50) 实现长度不够存在显示残留 左对齐以空格达到指定长度
+    print ("\r[*] {0}".format(message).ljust(50), end="")
+    
 
 def print_flush():
     print ("\r\r", end="")
