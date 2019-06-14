@@ -16,7 +16,8 @@ import sys
 import dns
 import re
 
-
+# 指定dns服务器地址
+resolver.nameservers=['8.8.8.8', '114.114.114.114']
 def get_output(domain):
     base_path = os.path.dirname(os.path.abspath(__file__))
     out_put_dir = os.path.join(base_path, "output", domain)
@@ -81,7 +82,7 @@ def analysis_dns(domain, domain_ips):
     except dns.exception.Timeout:
         pass
     except Exception as e:
-        print_error(e)
+        pass
 
 class Exhaustion(object):
     """暴力穷举"""
@@ -148,7 +149,7 @@ class Exhaustion(object):
         except dns.exception.Timeout:
             return True
         except Exception as e:
-            print_error(e)
+            return True
     
     def analysis_dns(self, domain):
         try:
@@ -165,7 +166,7 @@ class Exhaustion(object):
         except dns.exception.Timeout:
             pass
         except Exception as e:
-            print_error(e)
+            pass
         
     def run(self):
         # 先进行泛解析判断
@@ -189,4 +190,3 @@ class Exhaustion(object):
         else:
             print_error("域名有泛解析 不会执行穷举")
             return None
-
