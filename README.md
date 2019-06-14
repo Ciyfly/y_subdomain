@@ -48,7 +48,13 @@
 4. 打分机制
 
 ## 使用
-![20190603191920.png](https://i.loli.net/2019/06/03/5cf5023e6744d67390.png)  
+不使用暴力穷举
+![20190614171611.png](https://i.loli.net/2019/06/14/5d0365e14cba227416.png)
+
+默认生成的txt在 output目录下  
+生成的html
+![20190614171909.png](https://i.loli.net/2019/06/14/5d036691935e973620.png)
+
 
 ## 参考
 [aiodnsbrute](https://github.com/blark/aiodnsbrute/tree/master/aiodnsbrute)  
