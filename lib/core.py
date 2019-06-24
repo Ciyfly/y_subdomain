@@ -3,10 +3,10 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-12 19:23:10
+@LastEditTime: 2019-06-24 22:03:18
 '''
 from lib.command import print_log, print_info, print_error, splist
-from tqdm import tqdm
+# from tqdm import tqdm
 from dns import resolver
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 from collections import defaultdict
