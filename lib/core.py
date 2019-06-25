@@ -124,7 +124,7 @@ class Exhaustion(object):
         with open(self.tmp_file, "r") as f:
             line = f.readline()
             while line:
-                data = line.replace("\n").splist(" ")
+                data = line.replace("\n", "").split("    ")
                 domain = data[0]
                 ips = eval(data[1])
                 self.domain_ips[domain] = ips
@@ -136,7 +136,7 @@ class Exhaustion(object):
         通过不存在
         """
         try:
-            ans = resolver.query("recar123456"+self.scan_domain , "A")
+            ans = resolver.query("recar123456."+self.scan_domain , "A")
             if ans:
                 ips = list()
                 for i in ans.response.answer:
@@ -149,6 +149,7 @@ class Exhaustion(object):
         except dns.exception.Timeout:
             return True
         except Exception as e:
+            print(e)
             return True
     
     def analysis_dns(self, domain):
@@ -171,7 +172,7 @@ class Exhaustion(object):
     def run(self):
         # 先进行泛解析判断
         print("is_analysis")
-        if not self.is_analysis():
+        if self.is_analysis():
             pool = ThreadPoolExecutor(80) # 配置80个线程
             # 对字典进行切割 每5000个为一组进行解析
             splist_sub_dict = splist(self.sub_dict, 5000)
