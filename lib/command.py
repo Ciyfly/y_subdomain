@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-12 19:18:55
+@LastEditTime: 2019-06-26 16:11:54
 '''
 from config.html_template import (
     html_head, html_title, html_body_head, html_body_title,

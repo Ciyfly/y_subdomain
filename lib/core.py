@@ -3,88 +3,163 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-24 22:03:18
+@LastEditTime: 2019-06-26 16:43:57
 '''
 from lib.command import print_log, print_info, print_error, splist
-# from tqdm import tqdm
-from dns import resolver
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 from collections import defaultdict
+from config.html_template import (
+    html_head, html_title, html_body_head, html_body_title,
+    html_body_a, html_body_end, html_style
+                )
+from dns import resolver
+import dns
 import os
 import importlib
 import sys
-import dns
 import re
+import json
 
-# 指定dns服务器地址
-resolver.nameservers=['8.8.8.8', '114.114.114.114']
+
+
+# 获取输出路径 这里应该可以指定路径来输出  
 def get_output(domain):
     base_path = os.path.dirname(os.path.abspath(__file__))
-    out_put_dir = os.path.join(base_path, "output", domain)
-    if not os.path.isdir(out_put_dir):
-        os.makedirs(out_put_dir)
-    target_output_txt = os.path.join(out_put_dir, domain+".txt")
-    target_output_html = os.path.join(out_put_dir, domain+".html")
-    return target_output_txt, target_output_html
+    output_dir = os.path.join(base_path, "../", "output", domain)
+    print(f"output_dir {output_dir}")
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+    target_output_txt = os.path.join(output_dir, domain+".txt")
+    target_output_html = os.path.join(output_dir, domain+".html")
+    target_output_json = os.path.join(output_dir, domain+".json")
+    return target_output_txt, target_output_html, target_output_json
 
-def run_scripts(scan_domain, engine):
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    scripts_path = os.path.join(base_path, "../","scripts")
-    # 添加到搜索路径
-    sys.path.append(scripts_path)
-    scrips_list = list()
-    scripts_class = list()
-    result_set = set()
-    if not engine: # 没有指定引擎 遍历scrips文件夹
-        for root, dirs, files in os.walk(scripts_path):  
-            for filename in files:
-                name = os.path.splitext(filename)[0]
-                suffix = os.path.splitext(filename)[1]
-                if suffix == '.py':
-                    metaclass=importlib.import_module(os.path.splitext(filename)[0])
-                    # 通过脚本的 enable属性判断脚本是否执行  
-                    if metaclass.Scan(scan_domain).enable:
-                        print_info("run script: "+metaclass.Scan(scan_domain).name)
-                        result = metaclass.Scan(scan_domain).run()
-                        result_set = result_set | result
-                        print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
-    else: # 指定了引擎
-        for name in engine: # 这里不判断是否开启引擎 直接使用
-            metaclass=importlib.import_module(name)
-            print_info("run script: "+metaclass.Scan(scan_domain).name)
-            result = metaclass.Scan(scan_domain).run()
-            result_set = result_set | result
-            print_info("add : {0}   all count: {1}".format(len(result), len(result_set)))
-    return result_set
-                    
-def thread_dns(domains):
-    pool = ThreadPoolExecutor(50) # 定义线程池
-    domain_ips = defaultdict(list)
-    all_task = list()
-    for domain in domains:
-        all_task.append(pool.submit(analysis_dns, domain, domain_ips))
-    for task in all_task:
-        task.result()
-    return domain_ips
 
-def analysis_dns(domain, domain_ips):
-    try:
-        ans = resolver.query(domain, "A")
-        if ans:
-            ips = list()
-            for i in ans.response.answer:
-                for j in i.items:
-                        ip = j.to_text()
-                        if re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", ip):
-                            domain_ips[domain].append(ip)
-    except dns.resolver.NoAnswer:
-        pass
-    except dns.exception.Timeout:
-        pass
-    except Exception as e:
-        pass
+def save_text(domain_ips_dict, target_output_txt):
+    with open(target_output_txt, "w") as f:
+            for domain, ips in domain_ips_dict.items():
+                f.write(f"{domain}    {ips}\n")
+    print_info("save txt success")
 
-class Exhaustion(object):
+def save_json(domain_ips_dict, target_output_json):
+    with open(target_output_json, "w") as f:
+        json.dump(domain_ips_dict, f, indent=3)
+    print_info("save json success")
+
+def save_html(domain_ips_dict, scan_domain, target_output_html):
+    html = html_head
+    html +=  html_title.format(scan_domain)
+    html += html_body_head
+    html += html_body_title.format(scan_domain)
+    for domain in domain_ips_dict.keys():
+        html += html_body_a.format(domain)
+    html += html_body_end
+    html += html_style
+    with open(target_output_html, "w") as f:
+        f.write(html)
+    print_info("save html success")
+
+
+
+class EngineScan(object):
+    """接口解析类"""
+    def __init__(
+        self, scan_domain, engine, thread_count=100, is_output=False,
+        is_txt=False, is_json=False, is_html=False
+                ):
+        self.scan_domain = scan_domain
+        self.engine = engine
+        self.thread_count = thread_count
+        # 输出相关
+        self.is_output = is_output
+        self.is_txt = is_txt
+        self.is_json = is_json
+        self.is_html = is_html
+        # dns
+        self.resolver = resolver
+        self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
+        # 存储变量
+        self.domains_set = set()
+        self.domain_ips_dict = defaultdict(list)
+
+    def run_scripts(self):
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        scripts_path = os.path.join(base_path, "../","scripts")
+        # 添加到搜索路径
+        sys.path.append(scripts_path)
+        scrips_list = list()
+        scripts_class = list()
+        if not self.engine: # 没有指定引擎 遍历scrips文件夹
+            for root, dirs, files in os.walk(scripts_path):  
+                for filename in files:
+                    name = os.path.splitext(filename)[0]
+                    suffix = os.path.splitext(filename)[1]
+                    if suffix == '.py':
+                        metaclass=importlib.import_module(os.path.splitext(filename)[0])
+                        # 通过脚本的 enable属性判断脚本是否执行  
+                        if metaclass.Scan(self.scan_domain).enable:
+                            print_info("run script: "+metaclass.Scan(self.scan_domain).name)
+                            result = metaclass.Scan(self.scan_domain).run()
+                            self.domains_set = self.domains_set | result
+                            print_info(f"add: {len(result)}  all count: {len(self.domains_set)}")
+        else: # 指定了引擎
+            for name in self.engine: # 这里不判断是否开启引擎 直接使用
+                metaclass=importlib.import_module(name)
+                print_info("run script: "+metaclass.Scan(scan_domain).name)
+                result = metaclass.Scan(scan_domain).run()
+                self.domains_set = self.domains_set | result
+                print_info(f"add {len(result)}  all count: {len(self.domains_set)}")
+                        
+    def threadpool_dns(self):
+        pool = ThreadPoolExecutor(self.thread_count) # 定义线程池
+        all_task = list()
+        for domain in self.domains_set:
+            all_task.append(pool.submit(self.analysis_dns, domain))
+        for task in all_task:
+            task.result()
+
+    def analysis_dns(self, domain):
+        try:
+            ans = self.resolver.query(domain, "A")
+            if ans:
+                ips = list()
+                for i in ans.response.answer:
+                    for j in i.items:
+                            ip = j.to_text()
+                            if re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", ip):
+                                self.domain_ips_dict[domain].append(ip)
+        except dns.resolver.NoAnswer:
+            pass
+        except dns.exception.Timeout:
+            pass
+        except Exception as e:
+            pass
+
+    def save_doamin_ips(self):
+        target_output_txt, target_output_html, target_output_json = get_output(
+                    self.scan_domain
+                )
+        print(target_output_txt)
+        if self.is_txt:
+            save_text(self.domain_ips_dict, target_output_txt)
+        if self.is_json:
+            save_json(self.domain_ips_dict, target_output_json)
+        if self.is_html:
+            save_html(self.domain_ips_dict, self.scan_domain, target_output_html)
+
+    def run(self):
+        # 先用script下的接口获取子域名
+        self.run_scripts()
+        # 对这些接口进行dns解析 获取对应的ip列表
+        self.threadpool_dns()
+        # 判断是不是直接输出结果文件
+        if self.is_output:
+            self.save_doamin_ips()
+        return self.domain_ips_dict
+
+
+# 穷举类 
+class ExhaustionScan(object):
     """暴力穷举"""
     def __init__ (self, scan_domain):
         print("init")
