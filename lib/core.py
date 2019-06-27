@@ -63,7 +63,7 @@ class SaveDate(object):
             self.domain_ips_dict = self.exh_domain_ips_dict
         elif self.engine_domain_ips_dict and self.exh_domain_ips_dict:
             # 都有
-            for domain, ips in self.engine_domain_ips_dict:
+            for domain, ips in self.engine_domain_ips_dict.items():
                 if domain in self.exh_domain_ips_dict.keys():
                     self.exh_domain_ips_dict[domain] = self.exh_domain_ips_dict[domain] + ips
                 else:

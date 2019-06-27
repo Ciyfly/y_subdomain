@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-27 18:57:29
+@LastEditTime: 2019-06-27 19:35:16
 '''
 
 from lib.parser import get_options
@@ -32,12 +32,12 @@ def main():
     print_info("scan {0}\n".format(scan_domain))
 
     # # 接口解析
-    # start = time.perf_counter()
-    # engine_scan = EngineScan(scan_domain, engine)
-    # engine_domain_ips_dict = engine_scan.run()
-    # print_info(len(engine_domain_ips_dict))
-    # engine_end = (time.perf_counter() - start)
-    # print_info(f"引擎接口消耗时间:{engine_end}s")
+    start = time.perf_counter()
+    engine_scan = EngineScan(scan_domain, engine)
+    engine_domain_ips_dict = engine_scan.run()
+    print_info(len(engine_domain_ips_dict))
+    engine_end = (time.perf_counter() - start)
+    print_info(f"引擎接口消耗时间:{engine_end}s")
 
     exh_domain_ips_dict = None
     if exhaustion:
@@ -52,7 +52,7 @@ def main():
     
     save_data = SaveDate(
         scan_domain,
-        engine_domain_ips_dict= None,
+        engine_domain_ips_dict= engine_domain_ips_dict,
         exh_domain_ips_dict=exh_domain_ips_dict,
         is_text=True,
         is_json=is_json,
