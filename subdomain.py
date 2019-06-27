@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-27 17:02:56
+@LastEditTime: 2019-06-27 17:15:04
 '''
 
 from lib.parser import get_options
@@ -55,8 +55,8 @@ def main():
         engine_domain_ips_dict= engine_domain_ips_dict,
         exh_domain_ips_dict=exh_domain_ips_dict,
         is_text=True,
-        is_json=True,
-        is_html=True
+        is_json=is_json,
+        is_html=is_html
         )
     save_data.save_doamin_ips()
     # # 合并两个数据 
