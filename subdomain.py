@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-27 17:15:04
+@LastEditTime: 2019-06-27 17:16:26
 '''
 
 from lib.parser import get_options
@@ -31,8 +31,8 @@ def main():
 
     print_info("scan {0}\n".format(scan_domain))
 
-    start = time.perf_counter()
     # 接口解析
+    start = time.perf_counter()
     engine_scan = EngineScan(scan_domain, engine)
     engine_domain_ips_dict = engine_scan.run()
     print_info(len(engine_domain_ips_dict))
@@ -59,20 +59,6 @@ def main():
         is_html=is_html
         )
     save_data.save_doamin_ips()
-    # # 合并两个数据 
-    # if exh_domain_ips:
-    #     exh_keys = exh_domain_ips.keys()
-    #     for domain in engins_domain_ips.keys():
-    #         if domain not in exh_keys:
-    #             engins_domain_ips[domain] = engins_domain_ips[domain]
-    
-    # # 输出 txt结果 输出json 输出html
-    # # 保存txt
-    # save_text(engins_domain_ips, scan_domain)
-    # if is_json:
-    #     save_json(engins_domain_ips, scan_domain)
-    # if is_html:
-    #     save_html(engins_domain_ips, scan_domain)
 
 if __name__ == "__main__":
     main()
