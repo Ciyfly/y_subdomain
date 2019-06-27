@@ -3,10 +3,9 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-06-26 15:21:39
+@LastEditTime: 2019-06-27 17:10:18
 '''
 from lib.base import Base
-from lib.command import print_error
 from config.config import VIRUSTOTAL_APIKEY
 import requests
 import json
@@ -32,5 +31,6 @@ class Scan(Base):
             else:
                 return set()
         except Exception as e:
-            print_error("ERROR: "+self.name+" : "+str(e))
+            print("ERROR: "+self.name+" : "+str(e))
+            return set()
 

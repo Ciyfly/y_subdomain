@@ -3,9 +3,9 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-26 16:43:57
+@LastEditTime: 2019-06-27 17:05:41
 '''
-from lib.command import print_log, print_info, print_error, splist
+
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 from collections import defaultdict
 from config.html_template import (
@@ -19,62 +19,105 @@ import importlib
 import sys
 import re
 import json
+import random
+import string
+import queue
+import threading
+import time
 
 
+def print_log(message):
+    # ljust(50) 实现长度不够存在显示残留 左对齐以空格达到指定长度
+    print ("\r[*] {0}".format(message).ljust(50), end="")
 
-# 获取输出路径 这里应该可以指定路径来输出  
-def get_output(domain):
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    output_dir = os.path.join(base_path, "../", "output", domain)
-    print(f"output_dir {output_dir}")
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
-    target_output_txt = os.path.join(output_dir, domain+".txt")
-    target_output_html = os.path.join(output_dir, domain+".html")
-    target_output_json = os.path.join(output_dir, domain+".json")
-    return target_output_txt, target_output_html, target_output_json
+def print_flush():
+    print ("\r\r", end="")
 
+def print_info(message):
+    print(("[+] {0}".format(message)))
 
-def save_text(domain_ips_dict, target_output_txt):
-    with open(target_output_txt, "w") as f:
-            for domain, ips in domain_ips_dict.items():
-                f.write(f"{domain}    {ips}\n")
-    print_info("save txt success")
+def print_debug(message):
+    print("[-] {0}".format(message))
 
-def save_json(domain_ips_dict, target_output_json):
-    with open(target_output_json, "w") as f:
-        json.dump(domain_ips_dict, f, indent=3)
-    print_info("save json success")
+def print_error(message):
+    print(("[error] {0}".format(message)))
 
-def save_html(domain_ips_dict, scan_domain, target_output_html):
-    html = html_head
-    html +=  html_title.format(scan_domain)
-    html += html_body_head
-    html += html_body_title.format(scan_domain)
-    for domain in domain_ips_dict.keys():
-        html += html_body_a.format(domain)
-    html += html_body_end
-    html += html_style
-    with open(target_output_html, "w") as f:
-        f.write(html)
-    print_info("save html success")
+class SaveDate(object):
+    """用于保存域名结果"""
+    def __init__(self, scan_domain, engine_domain_ips_dict=None, exh_domain_ips_dict=None, is_text=False, is_json=False, is_html=False):
+        self.engine_domain_ips_dict = engine_domain_ips_dict
+        self.exh_domain_ips_dict = exh_domain_ips_dict
+        self.clean_data()
+        self.scan_domain = scan_domain
+        self.is_text = is_text
+        self.is_json = is_json
+        self.is_html = is_html
+        self.get_output()
 
+    def clean_data(self):
+        if self.engine_domain_ips_dict and self.exh_domain_ips_dict is None:
+            # 只有 engine_domain_ips_dict
+            self.domain_ips_dict = self.engine_domain_ips_dict
+        elif self.exh_domain_ips_dict and self.engine_domain_ips_dict is None:
+            # 只有 exh_domain_ips_dict
+            self.domain_ips_dict = self.exh_domain_ips_dict
+        elif self.engine_domain_ips_dict and self.exh_domain_ips_dict:
+            # 都有
+            for domain, ips in self.engine_domain_ips_dict:
+                if domain in self.exh_domain_ips_dict.keys():
+                    self.exh_domain_ips_dict[domain] = self.exh_domain_ips_dict[domain] + ips
+                else:
+                    self.exh_domain_ips_dict[domain] = ips
+            self.domain_ips_dict = self.exh_domain_ips_dict
 
+    def get_output(self):
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        output_dir = os.path.join(base_path, "../", "output", self.scan_domain)
+        print_info(f"output_dir {output_dir}")
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+        self.output_txt = os.path.join(output_dir, self.scan_domain+".txt")
+        self.output_html = os.path.join(output_dir, self.scan_domain+".html")
+        self.output_json = os.path.join(output_dir, self.scan_domain+".json")
+
+    def save_text(self):
+        with open(self.output_txt, "w") as f:
+                for domain, ips in self.domain_ips_dict.items():
+                    f.write(f"{domain}    {ips}\n")
+        print_info("save txt success")
+
+    def save_json(self):
+        with open(self.output_json, "w") as f:
+            json.dump(self.domain_ips_dict, f, indent=3)
+        print_info("save json success")
+
+    def save_html(self):
+        html = html_head
+        html +=  html_title.format(self.scan_domain)
+        html += html_body_head
+        html += html_body_title.format(self.scan_domain)
+        for domain in self.domain_ips_dict.keys():
+            html += html_body_a.format(domain)
+        html += html_body_end
+        html += html_style
+        with open(self.output_html, "w") as f:
+            f.write(html)
+        print_info("save html success")
+
+    def save_doamin_ips(self):
+        if self.save_text:
+            self.save_text()
+        if self.save_json:
+            self.save_json()
+        if self.save_html:
+            self.save_html()
 
 class EngineScan(object):
     """接口解析类"""
-    def __init__(
-        self, scan_domain, engine, thread_count=100, is_output=False,
-        is_txt=False, is_json=False, is_html=False
-                ):
+    def __init__(self, scan_domain, engine, thread_count=100):
         self.scan_domain = scan_domain
         self.engine = engine
         self.thread_count = thread_count
-        # 输出相关
-        self.is_output = is_output
-        self.is_txt = is_txt
-        self.is_json = is_json
-        self.is_html = is_html
         # dns
         self.resolver = resolver
         self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
@@ -94,7 +137,7 @@ class EngineScan(object):
                 for filename in files:
                     name = os.path.splitext(filename)[0]
                     suffix = os.path.splitext(filename)[1]
-                    if suffix == '.py':
+                    if suffix == '.py' and name!="base":
                         metaclass=importlib.import_module(os.path.splitext(filename)[0])
                         # 通过脚本的 enable属性判断脚本是否执行  
                         if metaclass.Scan(self.scan_domain).enable:
@@ -125,9 +168,8 @@ class EngineScan(object):
                 ips = list()
                 for i in ans.response.answer:
                     for j in i.items:
-                            ip = j.to_text()
-                            if re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", ip):
-                                self.domain_ips_dict[domain].append(ip)
+                        if hasattr(j, "address"):
+                            self.domain_ips_dict[domain].append(j.address)
         except dns.resolver.NoAnswer:
             pass
         except dns.exception.Timeout:
@@ -135,83 +177,47 @@ class EngineScan(object):
         except Exception as e:
             pass
 
-    def save_doamin_ips(self):
-        target_output_txt, target_output_html, target_output_json = get_output(
-                    self.scan_domain
-                )
-        print(target_output_txt)
-        if self.is_txt:
-            save_text(self.domain_ips_dict, target_output_txt)
-        if self.is_json:
-            save_json(self.domain_ips_dict, target_output_json)
-        if self.is_html:
-            save_html(self.domain_ips_dict, self.scan_domain, target_output_html)
-
     def run(self):
         # 先用script下的接口获取子域名
         self.run_scripts()
         # 对这些接口进行dns解析 获取对应的ip列表
         self.threadpool_dns()
-        # 判断是不是直接输出结果文件
-        if self.is_output:
-            self.save_doamin_ips()
         return self.domain_ips_dict
 
 
 # 穷举类 
 class ExhaustionScan(object):
     """暴力穷举"""
-    def __init__ (self, scan_domain):
-        print("init")
+    def __init__ (self, scan_domain, thread_count=100, segment=5000):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
+        self.resolver = resolver
+        self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
         self.scan_domain = scan_domain
-        self.domain_ips = defaultdict(list)
-        self.sub_dict = list()
+        # 默认线程100个
+        self.thread_count = thread_count
+        # 默认以5000个测试域名为一组进行测试
+        self.segment = segment
+        self.domain_ips_dict = defaultdict(list)
+        self.sub_dict_queue = queue.Queue()
         self.load_subdomain_dict()
-        self.tmp_file = self.get_tmpfile()
-        print("load over")
-
-    def get_tmpfile(self):
-        output_path = os.path.join(self.base_path, "../","output")
-        if not os.path.exists(output_path):
-            os.mkdir(output_path)
-        tmp_file = os.path.join(output_path, self.scan_domain+".tmp")
-        if os.path.exists(tmp_file):
-            os.remove(tmp_file)
-        return tmp_file
-
-    def save_tmp_file(self):
-        with open(self.tmp_file, "a+") as f:
-            domain_ips_keys = list(self.domain_ips.keys())
-            for key in domain_ips_keys:
-                data = key+"    "+str(self.domain_ips.pop(key))+"\n"
-                f.write(data)
 
     def load_subdomain_dict(self):
+        print_info("load sub dict")
         dict_path = os.path.join(self.base_path, "../","config", "sub.txt")
         with open(dict_path, "r") as f:
-            line = f.readline()
-            while line:
-                self.sub_dict.append(line.replace("\n", ""))
-                line = f.readline()
-    
-    def read_tmp_file(self):
-        with open(self.tmp_file, "r") as f:
-            line = f.readline()
-            while line:
-                data = line.replace("\n", "").split("    ")
-                domain = data[0]
-                ips = eval(data[1])
-                self.domain_ips[domain] = ips
-                line = f.readline()
+            for sub in f:
+                self.sub_dict_queue.put(f"{sub.strip()}.{self.scan_domain}")
+        print_info(f"quque all size: {self.sub_dict_queue.qsize()}")
 
     def is_analysis(self):
         """ 
         泛解析判断 
-        通过不存在
+        通过不存在的域名进行判断
         """
         try:
-            ans = resolver.query("recar123456."+self.scan_domain , "A")
+            ans = self.resolver.query(
+                ''.join(random.sample(string.ascii_lowercase,5))+"."+self.scan_domain , "A"
+                )
             if ans:
                 ips = list()
                 for i in ans.response.answer:
@@ -229,40 +235,44 @@ class ExhaustionScan(object):
     
     def analysis_dns(self, domain):
         try:
+            print(domain)
             ans = resolver.query(domain, "A")
             if ans:
                 ips = list()
                 for i in ans.response.answer:
                     for j in i.items:
-                            ip = j.to_text()
-                            if re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", ip):
-                                self.domain_ips[domain].append(ip)
+                        if hasattr(j, "address"):
+                            self.domain_ips_dict[domain].append(j.address)
         except dns.resolver.NoAnswer:
             pass
         except dns.exception.Timeout:
             pass
         except Exception as e:
             pass
-        
+
+    def worker(self):       
+        while not self.sub_dict_queue.empty():
+            domain = self.sub_dict_queue.get()
+            if domain is None:
+                break
+            self.analysis_dns(domain)
+            self.sub_dict_queue.task_done()
+
     def run(self):
         # 先进行泛解析判断
-        print("is_analysis")
         if self.is_analysis():
-            pool = ThreadPoolExecutor(80) # 配置80个线程
-            # 对字典进行切割 每5000个为一组进行解析
-            splist_sub_dict = splist(self.sub_dict, 5000)
-            for sub_dict in splist_sub_dict:
-                all_task = list()
-                for sub in  sub_dict:
-                    domain = sub+"."+self.scan_domain
-                    print(domain)
-                    all_task.append(pool.submit(self.analysis_dns, domain))
-                for task in all_task:
-                    task.result()
-                self.save_tmp_file()
-            # 最后解析tmp文件然后返回数据进行封装
-            self.read_tmp_file()
-            return self.domain_ips
+            threads = []
+            for i in range(self.thread_count):
+                t = threading.Thread(target=self.worker)
+                t.start()
+                threads.append(t)
+            # 阻塞 等待队列消耗完
+            print_info("start thread ")
+            # while not self.sub_dict_queue.empty():
+            #     time.sleep(1)
+            #     print_log(f"quque size: {self.sub_dict_queue.qsize()}")
+            print()
+            self.sub_dict_queue.join()
+            return self.domain_ips_dict
         else:
             print_error("域名有泛解析 不会执行穷举")
-            return None
