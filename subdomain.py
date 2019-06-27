@@ -3,19 +3,19 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-27 17:16:26
+@LastEditTime: 2019-06-27 18:57:29
 '''
 
 from lib.parser import get_options
 from lib.core import EngineScan, ExhaustionScan, SaveDate, print_log, print_info
 import signal
 import time
-
+import sys
 
 def ctrl_c(signum,frame):
     print()
     print("[-] input ctrl c")
-    exit(1)
+    sys.exit()
 
 signal.signal(signal.SIGINT, ctrl_c)
 
@@ -31,19 +31,19 @@ def main():
 
     print_info("scan {0}\n".format(scan_domain))
 
-    # 接口解析
-    start = time.perf_counter()
-    engine_scan = EngineScan(scan_domain, engine)
-    engine_domain_ips_dict = engine_scan.run()
-    print_info(len(engine_domain_ips_dict))
-    engine_end = (time.perf_counter() - start)
-    print_info(f"引擎接口消耗时间:{engine_end}s")
+    # # 接口解析
+    # start = time.perf_counter()
+    # engine_scan = EngineScan(scan_domain, engine)
+    # engine_domain_ips_dict = engine_scan.run()
+    # print_info(len(engine_domain_ips_dict))
+    # engine_end = (time.perf_counter() - start)
+    # print_info(f"引擎接口消耗时间:{engine_end}s")
 
     exh_domain_ips_dict = None
     if exhaustion:
         # 穷举解析
         start = time.perf_counter()
-        exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=50)
+        exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=50, is_output=True)
         exh_domain_ips_dict = exhaustion_scan.run()
         print(len(exh_domain_ips_dict))
         exh_end = (time.perf_counter() - start)
@@ -52,7 +52,7 @@ def main():
     
     save_data = SaveDate(
         scan_domain,
-        engine_domain_ips_dict= engine_domain_ips_dict,
+        engine_domain_ips_dict= None,
         exh_domain_ips_dict=exh_domain_ips_dict,
         is_text=True,
         is_json=is_json,

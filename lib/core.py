@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-27 18:37:39
+@LastEditTime: 2019-06-27 19:00:01
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -264,6 +264,7 @@ class ExhaustionScan(object):
             threads = []
             for i in range(self.thread_count):
                 t = threading.Thread(target=self.worker)
+                t.setDaemon(True)
                 t.start()
                 threads.append(t)
             # 阻塞 等待队列消耗完
