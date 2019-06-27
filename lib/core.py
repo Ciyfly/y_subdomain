@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-27 17:05:41
+@LastEditTime: 2019-06-27 18:37:39
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -188,18 +188,18 @@ class EngineScan(object):
 # 穷举类 
 class ExhaustionScan(object):
     """暴力穷举"""
-    def __init__ (self, scan_domain, thread_count=100, segment=5000):
+    def __init__ (self, scan_domain, thread_count=50,is_output=False):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
         self.resolver = resolver
         self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
         self.scan_domain = scan_domain
         # 默认线程100个
         self.thread_count = thread_count
-        # 默认以5000个测试域名为一组进行测试
-        self.segment = segment
+        self.is_output = is_output
         self.domain_ips_dict = defaultdict(list)
         self.sub_dict_queue = queue.Queue()
         self.load_subdomain_dict()
+        self.all_size = self.sub_dict_queue.qsize()
 
     def load_subdomain_dict(self):
         print_info("load sub dict")
@@ -235,7 +235,7 @@ class ExhaustionScan(object):
     
     def analysis_dns(self, domain):
         try:
-            print(domain)
+            # print(domain)
             ans = resolver.query(domain, "A")
             if ans:
                 ips = list()
@@ -268,9 +268,18 @@ class ExhaustionScan(object):
                 threads.append(t)
             # 阻塞 等待队列消耗完
             print_info("start thread ")
-            # while not self.sub_dict_queue.empty():
-            #     time.sleep(1)
-            #     print_log(f"quque size: {self.sub_dict_queue.qsize()}")
+            start = time.perf_counter()
+            if self.is_output:
+                while not self.sub_dict_queue.empty():
+                    time.sleep(1)
+                    out_u = int(self.sub_dict_queue.qsize()/self.all_size*50) # ##
+                    out_l = 50 - out_u
+                    percentage = 100-(self.sub_dict_queue.qsize()/self.all_size*100)
+                    print(
+                        '\r'+'[' + '>' * out_l + '-' * out_u +']'
+                        + f'{percentage:.2f}%'
+                        + f'|size: {self.sub_dict_queue.qsize()}'
+                        + f'|use time: {time.perf_counter() - start:.2f}s', end="")
             print()
             self.sub_dict_queue.join()
             return self.domain_ips_dict
