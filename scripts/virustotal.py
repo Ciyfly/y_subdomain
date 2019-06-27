@@ -3,10 +3,9 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-31 16:10:57
+@LastEditTime: 2019-06-27 17:10:18
 '''
 from lib.base import Base
-from lib.command import print_error
 from config.config import VIRUSTOTAL_APIKEY
 import requests
 import json
@@ -20,6 +19,8 @@ class Scan(Base):
 
     def run(self):
         try:
+            if not VIRUSTOTAL_APIKEY:# 如果没有配置 api key 直接返回空  
+                return set()
             params = {'apikey': VIRUSTOTAL_APIKEY,'domain': self.scan_domain}
             response = requests.get(self.base_url, params=params)
             if response.status_code == 200:
@@ -30,5 +31,6 @@ class Scan(Base):
             else:
                 return set()
         except Exception as e:
-            print_error("ERROR: "+self.name+" : "+str(e))
+            print("ERROR: "+self.name+" : "+str(e))
+            return set()
 

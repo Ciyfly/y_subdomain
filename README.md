@@ -71,3 +71,5 @@ TODO
 [ESD](https://github.com/FeeiCN/ESD)  
 
 [wydomain](https://github.com/ring04h/wydomain)  
+
+git log --oneline --color | emojify | less -r

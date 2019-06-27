@@ -3,10 +3,9 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-05-31 15:38:19
+@LastEditTime: 2019-06-27 17:09:20
 '''
 from lib.base import Base
-from lib.command import print_error
 import requests
 import json
 
@@ -28,5 +27,5 @@ class Scan(Base):
             else:
                 return set()
         except Exception as e:
-            print_error("ERROR: "+self.name+" : "+str(e))
+            "ERROR: "+self.name+" : "+str(e)
             return set()

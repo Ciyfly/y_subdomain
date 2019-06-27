@@ -3,13 +3,14 @@
 '''
 @Author: recar
 @Date: 2019-05-30 16:07:49
-@LastEditTime: 2019-06-12 19:02:55
+@LastEditTime: 2019-06-26 16:43:50
 '''
 from optparse import OptionParser
-from config.config import VERSION
+from config.config import VERSION, BANNER
 USAGE = "python domain -d xxx.com"
 import sys
 def get_options():
+    print(BANNER)
     parser = OptionParser(usage=USAGE,version=VERSION)
 
     parser.add_option('-d', type=str, dest="domain", help="指定要测试的域名")
