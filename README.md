@@ -22,7 +22,7 @@
 **接口引擎脚本完成：**
 1. 百度云检测  
 2. hackertarget
-3. virustotal
+3. virustotal (需要在config/config.py 中添加api key才能使用不然默认不会执行)
 4. 通过证书获取
 
 ### 暴力穷举的实现  
