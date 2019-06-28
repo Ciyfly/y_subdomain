@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-28 11:32:20
+@LastEditTime: 2019-06-28 11:47:16
 '''
 
 from lib.parser import get_options
@@ -34,7 +34,7 @@ def main():
     if exhaustion:
         # 穷举解析
         start = time.perf_counter()
-        exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=False)
+        exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
         exh_domain_ips_dict = exhaustion_scan.run()
         print(len(exh_domain_ips_dict))
         exh_end = (time.perf_counter() - start)
