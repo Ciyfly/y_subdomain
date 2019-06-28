@@ -68,16 +68,20 @@
 # api形式使用  
 使用接口解析
 ```python
-    engine_scan = EngineScan(scan_domain, engine)
-    # scan_domain 为扫描的域名 engine 是指定的接口 空的话就全部都跑 默认也是全部都跑  
-    engine_domain_ips_dict = engine_scan.run()
-    # 调用 run方法会返回 解析的结果 是 字典形式 子域名对应ip列表  
+from lib.core import EngineScan
+
+engine_scan = EngineScan(scan_domain, engine)
+# scan_domain 为扫描的域名 engine 是指定的接口 空的话就全部都跑 默认也是全部都跑  
+engine_domain_ips_dict = engine_scan.run()
+# 调用 run方法会返回 解析的结果 是 字典形式 子域名对应ip列表  
 ```
 使用穷举解析
 ```python
-    exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
-    # is_output 是否输出进度条 默认是False的
-    exh_domain_ips_dict = exhaustion_scan.run()
+from lib.core import ExhaustionScan
+
+exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
+# is_output 是否输出进度条 默认是False的
+exh_domain_ips_dict = exhaustion_scan.run()
 ```  
 
 ## 参考
