@@ -75,9 +75,9 @@
 ```
 使用穷举解析
 ```python
-exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
-# is_output 是否输出进度条 默认是False的
-exh_domain_ips_dict = exhaustion_scan.run()
+    exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
+    # is_output 是否输出进度条 默认是False的
+    exh_domain_ips_dict = exhaustion_scan.run()
 ```  
 
 ## 参考
