@@ -2,14 +2,8 @@
 
 子域名获取工具
 
-## 分析如下:
-分析结合几个现有的工具发现都是如下几点实现:
-1. 多种第三方接口 获取子域名
-2. 字典加异步dns暴力穷举
-3. 利用ca证书获取
-
 ### 泛解析的解决办法
-都是采用 先测试一个不存在的域名然后是否成功解析
+先测试一个不存在的域名然后是否成功解析
 
 
 ### 为什么要做
@@ -17,59 +11,77 @@
 2. 是大扫描器的信息收集的一部分功能的实现
 
 
-## 具体功能设计
-1. 命令行形式执行 基于python3
-2. 这次增加进度条功能(之前我写的东西进度条都不好看)
-3. 结合多个现有的工具 结合多个接口 高扩展性
-4. 增加网页爬取获取子域名信息
-5. ...
-
-
 ## 实现  
-这里参考 poc的形式 动态的从script文件夹下的脚本中执行 也就是说把每个采集子域名的作成一个Scan类 然后只要增加新的就可以了  
-多个web接口的形式获取子域名 然后对这些子域名加上字典进行爆破
+### 接口的实现
+这里参考 poc的形式 动态的从script文件夹下的脚本
+动态载入实例化并执  
+继承Base类默认有个 `self.enable=True` 可以控制是否开启脚本  
+如果使用 -e 指定接口 enable是False也会强制执行  
+对于接口返回的域名会使用线程池再去dns解析验证 (默认线程池大小 50)
 
 **接口引擎脚本完成：**
 1. 百度云检测  
 2. hackertarget
-3. threatcrowd (默认关闭)
-4. virustotal
-5. 微步(没有私有api)
-6. 爬虫形式解析获取子域名(默认关闭)
-7. 通过证书获取  
-8. dns暴力穷举(目前采用线程池实现)
+3. virustotal
+4. 通过证书获取
 
+### 暴力穷举的实现  
+一口气加载字典到内存中 占内存不大  
+使用共享队列+多线程的形式进行解析dns 默认线程开启100个  
+这个地方有进度条功能 可以在实例化穷举类的时候进行选择是否开启  
 
 ## 使用  
 不使用暴力穷举  
-![20190625174441.png](https://i.loli.net/2019/06/25/5d11ed1cdbd7b80753.png)
+
+![20190628114320.png](https://i.loli.net/2019/06/28/5d158cf51a27539916.png)  
+
+
+使用暴力穷举  
+
+![20190628114417.png](https://i.loli.net/2019/06/28/5d158d2b4118d84421.png)  
+
+
+关闭进度条输出 使用HUP信号获取字典队列大小  
+![20190628114457.png](https://i.loli.net/2019/06/28/5d158d53f159d86830.png)  
 
 
 默认生成的txt在 output目录下  
-生成的html
+可以选择是否生成json  
+选择生成的html如下  
 
-![20190625174349.png](https://i.loli.net/2019/06/25/5d11ece9489dc60057.png)
+![20190625174349.png](https://i.loli.net/2019/06/25/5d11ece9489dc60057.png)  
 
-##版本
+## 版本
 **V0.1**  
-采用线程池的形式进行dns解析  
-采用多接口的形式获取域名 (爬虫有个问题 开启爬虫后再进行dns解析会很慢很慢 于是默认关闭了爬虫)  
-每个接口都可以在代码中增加 `self.enable=False` 来进行默认开关  
-暴力穷举效果确实不错  
+采用多接口的形式获取域名 动态插件形式添加接口脚本  
+接口验证和穷举都采用线程池的形式进行dns解析  
 
-**V0.2**
-TODO  
-增加更多的接口  
-使用异步dns来解析 dns  
-让使用和输出更简洁流畅  
-参考更多的子域名工具  
-待定....
+**V0.2**  
+修改 穷举采用共享队列+多线程的形式  
+去除多余代码  
+修改了代码结构 便于作为api使用  
+穷举增加了进度条  
+扩大了字典 目前字典 2350706 (235w) (跑一次大概 40分钟左右)  
+增加了HUP小调试 发起HUP信号会输出 此时队列大小 (在 api形式使用不输出进度条的时候 如果长时间未结束可调试使用)  
+`kill -HUP 进程id`  
+
+# api形式使用  
+使用接口解析
+```python
+    engine_scan = EngineScan(scan_domain, engine)
+    # scan_domain 为扫描的域名 engine 是指定的接口 空的话就全部都跑 默认也是全部都跑  
+    engine_domain_ips_dict = engine_scan.run()
+    # 调用 run方法会返回 解析的结果 是 字典形式 子域名对应ip列表  
+```
+使用穷举解析
+```python
+exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
+# is_output 是否输出进度条 默认是False的
+exh_domain_ips_dict = exhaustion_scan.run()
+```  
+
 ## 参考
-[aiodnsbrute](https://github.com/blark/aiodnsbrute/tree/master/aiodnsbrute)  
-后面再参考这个的日志做新的版本  
 
 [ESD](https://github.com/FeeiCN/ESD)  
 
 [wydomain](https://github.com/ring04h/wydomain)  
-
-git log --oneline --color | emojify | less -r
