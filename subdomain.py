@@ -3,22 +3,13 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-27 19:35:16
+@LastEditTime: 2019-06-28 11:32:20
 '''
 
 from lib.parser import get_options
 from lib.core import EngineScan, ExhaustionScan, SaveDate, print_log, print_info
-import signal
 import time
 import sys
-
-def ctrl_c(signum,frame):
-    print()
-    print("[-] input ctrl c")
-    sys.exit()
-
-signal.signal(signal.SIGINT, ctrl_c)
-
 
 def main():
     # 获取命令行参数  
@@ -43,13 +34,13 @@ def main():
     if exhaustion:
         # 穷举解析
         start = time.perf_counter()
-        exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=50, is_output=True)
+        exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=False)
         exh_domain_ips_dict = exhaustion_scan.run()
         print(len(exh_domain_ips_dict))
         exh_end = (time.perf_counter() - start)
         print_info(f"穷举消耗时间:{exh_end}s")
     
-    
+    # 保存结果  
     save_data = SaveDate(
         scan_domain,
         engine_domain_ips_dict= engine_domain_ips_dict,

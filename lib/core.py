@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-27 19:00:01
+@LastEditTime: 2019-06-28 11:35:01
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -24,7 +24,22 @@ import string
 import queue
 import threading
 import time
+import signal
 
+
+def ctrl_c(signum,frame):
+    print()
+    print("[-] input ctrl c")
+    sys.exit()
+
+def print_queue_size(signum, frame):
+    print()
+    print(f"[debug] queue size: {frame.f_locals['self'].sub_dict_queue.qsize()}")
+
+# ctrl+c
+signal.signal(signal.SIGINT, ctrl_c)
+# HUP
+signal.signal(signal.SIGHUP, print_queue_size)
 
 def print_log(message):
     # ljust(50) 实现长度不够存在显示残留 左对齐以空格达到指定长度
@@ -105,16 +120,16 @@ class SaveDate(object):
         print_info("save html success")
 
     def save_doamin_ips(self):
-        if self.save_text:
+        if self.is_text:
             self.save_text()
-        if self.save_json:
+        if self.is_json:
             self.save_json()
-        if self.save_html:
+        if self.is_html:
             self.save_html()
 
 class EngineScan(object):
     """接口解析类"""
-    def __init__(self, scan_domain, engine, thread_count=100):
+    def __init__(self, scan_domain, engine=None, thread_count=100):
         self.scan_domain = scan_domain
         self.engine = engine
         self.thread_count = thread_count
@@ -270,9 +285,9 @@ class ExhaustionScan(object):
             # 阻塞 等待队列消耗完
             print_info("start thread ")
             start = time.perf_counter()
-            if self.is_output:
-                while not self.sub_dict_queue.empty():
-                    time.sleep(1)
+            while not self.sub_dict_queue.empty():
+                time.sleep(1)
+                if self.is_output:
                     out_u = int(self.sub_dict_queue.qsize()/self.all_size*50) # ##
                     out_l = 50 - out_u
                     percentage = 100-(self.sub_dict_queue.qsize()/self.all_size*100)
