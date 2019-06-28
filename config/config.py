@@ -20,5 +20,5 @@ __   __     _____       _    ______                      _
 """
 
 
-VIRUSTOTAL_APIKEY = "f11bd6299d0ca322a8edcf9206f51c0bbdc5df4a8296749739ae393e9703d816"
+VIRUSTOTAL_APIKEY = ""
 WEIBU_APIKEY = ""
