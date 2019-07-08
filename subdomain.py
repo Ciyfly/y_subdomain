@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-06-28 11:47:16
+@LastEditTime: 2019-07-08 12:11:30
 '''
 
 from lib.parser import get_options
@@ -36,9 +36,10 @@ def main():
         start = time.perf_counter()
         exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
         exh_domain_ips_dict = exhaustion_scan.run()
-        print(len(exh_domain_ips_dict))
-        exh_end = (time.perf_counter() - start)
-        print_info(f"穷举消耗时间:{exh_end}s")
+        if exh_domain_ips_dict:
+            print(len(exh_domain_ips_dict))
+            exh_end = (time.perf_counter() - start)
+            print_info(f"穷举消耗时间:{exh_end}s")
     
     # 保存结果  
     save_data = SaveDate(
