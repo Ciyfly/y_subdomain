@@ -84,6 +84,16 @@ exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
 exh_domain_ips_dict = exhaustion_scan.run()
 ```  
 
+## update
+
+2019 0709
+经测试 修改对于泛解析的解决  
+如果随机字符串跑出来泛解析还继续进行穷举但是过滤掉这个泛解析的ip  
+对于接口里的也进行泛解析剔除  
+对于暴力穷举的会默认使用配置文件中的 50 阈值 作为判断泛解析的条件 当超过50个域名指向一个ip进行剔除  
+
+
+
 ## 参考
 
 [ESD](https://github.com/FeeiCN/ESD)  
