@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-06-28 11:35:01
+@LastEditTime: 2019-07-10 12:51:17
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -59,7 +59,10 @@ def print_error(message):
 
 class SaveDate(object):
     """用于保存域名结果"""
-    def __init__(self, scan_domain, engine_domain_ips_dict=None, exh_domain_ips_dict=None, is_text=False, is_json=False, is_html=False):
+    def __init__(
+        self, scan_domain, engine_domain_ips_dict=None, exh_domain_ips_dict=None,
+              is_text=False, is_json=False, is_html=False
+              ):
         self.engine_domain_ips_dict = engine_domain_ips_dict
         self.exh_domain_ips_dict = exh_domain_ips_dict
         self.clean_data()
@@ -129,7 +132,7 @@ class SaveDate(object):
 
 class EngineScan(object):
     """接口解析类"""
-    def __init__(self, scan_domain, engine=None, thread_count=100):
+    def __init__(self, scan_domain, engine=None, thread_count=100, get_black_ip=False):
         self.scan_domain = scan_domain
         self.engine = engine
         self.thread_count = thread_count
@@ -139,6 +142,11 @@ class EngineScan(object):
         # 存储变量
         self.domains_set = set()
         self.domain_ips_dict = defaultdict(list)
+        self.get_black_ip = get_black_ip
+        # 去除泛解析
+        self.black_ip = list()
+        # {ip:{ domains: [域名], count: 计数}  }
+        self.ip_domain_count_dict = dict()
 
     def run_scripts(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
@@ -191,13 +199,36 @@ class EngineScan(object):
             pass
         except Exception as e:
             pass
+    
+    def remove_black_ip(self):
+        # 对于接口返回域名的泛解析结果的去除  
+        for domain, ips in self.domain_ips_dict.items():
+            for ip in ips:
+                if ip in self.ip_domain_count_dict.keys():
+                    self.ip_domain_count_dict[ip]["count"] +=1
+                    self.ip_domain_count_dict[ip]["domains"].append(domain)
+                else:
+                    self.ip_domain_count_dict[ip] = {"domains": [domain], "count": 1}
+        # remove
+        for ip, domains_count in self.ip_domain_count_dict.items():
+            if domains_count["count"] > 3: # 有3个域名指向了同一个ip
+                # 将泛解析的ip存下来 返回回去 
+                self.black_ip.append(ip)
+                for domain in domains_count["domains"]:
+                    if domain in self.domain_ips_dict.keys():
+                        self.domain_ips_dict.pop(domain)
 
     def run(self):
         # 先用script下的接口获取子域名
         self.run_scripts()
         # 对这些接口进行dns解析 获取对应的ip列表
         self.threadpool_dns()
-        return self.domain_ips_dict
+        # 对接口返回含有泛解析的域名去除  
+        self.remove_black_ip()
+        if self.get_black_ip: # 是否返回泛解析的ip  
+            return self.domain_ips_dict, self.black_ip
+        else:
+            return self.domain_ips_dict
 
 
 # 穷举类 
