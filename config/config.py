@@ -22,3 +22,5 @@ __   __     _____       _    ______                      _
 
 VIRUSTOTAL_APIKEY = ""
 WEIBU_APIKEY = ""
+# 是对重复的ip达到多少进行删除数据 jd的话差不多超过50个域名指向一个ip就可以删除了  
+DNS_THRESHOLD = 50

@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-10 12:51:17
+@LastEditTime: 2019-07-10 21:29:18
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -12,6 +12,7 @@ from config.html_template import (
     html_head, html_title, html_body_head, html_body_title,
     html_body_a, html_body_end, html_style
                 )
+from config.config import DNS_THRESHOLD
 from dns import resolver
 import dns
 import os
@@ -211,11 +212,12 @@ class EngineScan(object):
                     self.ip_domain_count_dict[ip] = {"domains": [domain], "count": 1}
         # remove
         for ip, domains_count in self.ip_domain_count_dict.items():
-            if domains_count["count"] > 3: # 有3个域名指向了同一个ip
+            if domains_count["count"] > DNS_THRESHOLD: # 有50个域名指向了同一个ip jd的有大量指向一个ip 
                 # 将泛解析的ip存下来 返回回去 
                 self.black_ip.append(ip)
                 for domain in domains_count["domains"]:
                     if domain in self.domain_ips_dict.keys():
+                        # print(domain,  ip, domains_count["count"])
                         self.domain_ips_dict.pop(domain)
 
     def run(self):
@@ -234,7 +236,7 @@ class EngineScan(object):
 # 穷举类 
 class ExhaustionScan(object):
     """暴力穷举"""
-    def __init__ (self, scan_domain, thread_count=50,is_output=False):
+    def __init__ (self, scan_domain, thread_count=100,is_output=False, black_ip=list()):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
         self.resolver = resolver
         self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
@@ -246,6 +248,10 @@ class ExhaustionScan(object):
         self.sub_dict_queue = queue.Queue()
         self.load_subdomain_dict()
         self.all_size = self.sub_dict_queue.qsize()
+        # 泛解析的ip 默认是空 可以将接口返回的 black_ip 传入这里 
+        self.black_ip = black_ip
+        # {ip:{ domains: [域名], count: 计数}  }
+        self.ip_domain_count_dict = dict()
 
     def load_subdomain_dict(self):
         print_info("load sub dict")
@@ -288,7 +294,9 @@ class ExhaustionScan(object):
                 for i in ans.response.answer:
                     for j in i.items:
                         if hasattr(j, "address"):
-                            self.domain_ips_dict[domain].append(j.address)
+                            # 增加对泛解析的操作
+                            if self.remove_black_ip(domain, j.address):
+                                self.domain_ips_dict[domain].append(j.address)
         except dns.resolver.NoAnswer:
             pass
         except dns.exception.Timeout:
@@ -296,7 +304,26 @@ class ExhaustionScan(object):
         except Exception as e:
             pass
 
-    def worker(self):       
+    def remove_black_ip(self, domain, ip):
+        """ 对解析后的域名ip判断是否是泛解析 超过阈值进行忽略和删除"""
+        if ip in self.black_ip:
+            return False
+        if ip in self.ip_domain_count_dict.keys():
+            self.ip_domain_count_dict[ip]["count"] +=1
+            self.ip_domain_count_dict[ip]["domains"].append(domain)
+        else:
+            self.ip_domain_count_dict[ip] = {"domains": [domain], "count": 1}
+        # 判断是否达到泛解析ip阈值 达到则删除记录下来的并增加黑ip  
+        if self.ip_domain_count_dict[ip]["count"] > DNS_THRESHOLD:
+            for domain in self.ip_domain_count_dict[ip]["domains"]:
+                if domain in self.domain_ips_dict.keys():
+                    self.domain_ips_dict.pop(domain)
+            self.black_ip.append(ip)
+            return False
+        else:# 没有达到阈值
+            return True
+                
+    def worker(self):
         while not self.sub_dict_queue.empty():
             domain = self.sub_dict_queue.get()
             if domain is None:
@@ -307,28 +334,28 @@ class ExhaustionScan(object):
     def run(self):
         # 先进行泛解析判断
         if self.is_analysis():
-            threads = []
-            for i in range(self.thread_count):
-                t = threading.Thread(target=self.worker)
-                t.setDaemon(True)
-                t.start()
-                threads.append(t)
-            # 阻塞 等待队列消耗完
-            print_info("start thread ")
-            start = time.perf_counter()
-            while not self.sub_dict_queue.empty():
-                time.sleep(1)
-                if self.is_output:
-                    out_u = int(self.sub_dict_queue.qsize()/self.all_size*50) # ##
-                    out_l = 50 - out_u
-                    percentage = 100-(self.sub_dict_queue.qsize()/self.all_size*100)
-                    print(
-                        '\r'+'[' + '>' * out_l + '-' * out_u +']'
-                        + f'{percentage:.2f}%'
-                        + f'|size: {self.sub_dict_queue.qsize()}'
-                        + f'|use time: {time.perf_counter() - start:.2f}s', end="")
-            print()
-            self.sub_dict_queue.join()
-            return self.domain_ips_dict
-        else:
-            print_error("域名有泛解析 不会执行穷举")
+            print_debug("存在泛解析")
+        threads = []
+        for i in range(self.thread_count):
+            t = threading.Thread(target=self.worker)
+            t.setDaemon(True)
+            t.start()
+            threads.append(t)
+        # 阻塞 等待队列消耗完
+        print_info("start thread ")
+        start = time.perf_counter()
+        while not self.sub_dict_queue.empty():
+            time.sleep(1)
+            if self.is_output:
+                out_u = int(self.sub_dict_queue.qsize()/self.all_size*50) # ##
+                out_l = 50 - out_u
+                percentage = 100-(self.sub_dict_queue.qsize()/self.all_size*100)
+                print(
+                    '\r'+'[' + '>' * out_l + '-' * out_u +']'
+                    + f'{percentage:.2f}%'
+                    + f'|size: {self.sub_dict_queue.qsize()}'
+                    + f'|use time: {time.perf_counter() - start:.2f}s', end="")
+        print()
+        self.sub_dict_queue.join()
+        return self.domain_ips_dict
+
