@@ -16,3 +16,9 @@ sms
 test
 app
 admin
+bdp
+oil
+60s
+gsp
+ufs
+iotx
