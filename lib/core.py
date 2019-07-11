@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-11 21:56:11
+@LastEditTime: 2019-07-11 22:05:35
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -250,7 +250,11 @@ class EngineScan(object):
 # 穷举类 
 class ExhaustionScan(object):
     """暴力穷举"""
-    def __init__ (self, scan_domain, thread_count=100,is_output=False, black_ip=list(), is_private=False):
+    def __init__ (
+        self, scan_domain, thread_count=100,
+        is_output=False, black_ip=list(),
+        is_private=False, sub_dict=None
+        ):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
         self.resolver = resolver
         self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
@@ -258,6 +262,7 @@ class ExhaustionScan(object):
         # 默认线程100个
         self.thread_count = thread_count
         self.is_output = is_output
+        self.sub_dict = sub_dict
         self.domain_ips_dict = defaultdict(list)
         self.sub_dict_queue = queue.Queue()
         self.load_subdomain_dict()
@@ -271,7 +276,10 @@ class ExhaustionScan(object):
 
     def load_subdomain_dict(self):
         print_info("load sub dict")
-        dict_path = os.path.join(self.base_path, "../","config", "sub.txt")
+        if self.sub_dict: # 使用指定的字典 
+            dict_path = self.sub_dict
+        else:
+            dict_path = os.path.join(self.base_path, "../","config", "sub.txt")
         with open(dict_path, "r") as f:
             for sub in f:
                 self.sub_dict_queue.put(f"{sub.strip()}.{self.scan_domain}")
