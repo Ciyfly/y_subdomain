@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-10 21:29:18
+@LastEditTime: 2019-07-11 21:56:11
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -17,6 +17,7 @@ from dns import resolver
 import dns
 import os
 import importlib
+import ipaddress
 import sys
 import re
 import json
@@ -62,8 +63,8 @@ class SaveDate(object):
     """用于保存域名结果"""
     def __init__(
         self, scan_domain, engine_domain_ips_dict=None, exh_domain_ips_dict=None,
-              is_text=False, is_json=False, is_html=False
-              ):
+            is_text=False, is_json=False, is_html=False
+            ):
         self.engine_domain_ips_dict = engine_domain_ips_dict
         self.exh_domain_ips_dict = exh_domain_ips_dict
         self.clean_data()
@@ -71,6 +72,7 @@ class SaveDate(object):
         self.is_text = is_text
         self.is_json = is_json
         self.is_html = is_html
+
         self.get_output()
 
     def clean_data(self):
@@ -133,7 +135,7 @@ class SaveDate(object):
 
 class EngineScan(object):
     """接口解析类"""
-    def __init__(self, scan_domain, engine=None, thread_count=100, get_black_ip=False):
+    def __init__(self, scan_domain, engine=None, thread_count=100, get_black_ip=False, is_private=False):
         self.scan_domain = scan_domain
         self.engine = engine
         self.thread_count = thread_count
@@ -148,6 +150,8 @@ class EngineScan(object):
         self.black_ip = list()
         # {ip:{ domains: [域名], count: 计数}  }
         self.ip_domain_count_dict = dict()
+        # 去除内网ip
+        self.is_private = is_private
 
     def run_scripts(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
@@ -220,11 +224,21 @@ class EngineScan(object):
                         # print(domain,  ip, domains_count["count"])
                         self.domain_ips_dict.pop(domain)
 
+    def remove_private(self):
+        print_info("del private ip domain")
+        for domain in list(self.domain_ips_dict.keys()):
+            ips = self.domain_ips_dict[domain]
+            if ipaddress.ip_address(ips[0]).is_private: # if private ip del
+                self.domain_ips_dict.pop(domain)
+
     def run(self):
         # 先用script下的接口获取子域名
         self.run_scripts()
         # 对这些接口进行dns解析 获取对应的ip列表
         self.threadpool_dns()
+        # 是否保留内网ip结果
+        if not self.is_private:
+            self.remove_private()
         # 对接口返回含有泛解析的域名去除  
         self.remove_black_ip()
         if self.get_black_ip: # 是否返回泛解析的ip  
@@ -236,7 +250,7 @@ class EngineScan(object):
 # 穷举类 
 class ExhaustionScan(object):
     """暴力穷举"""
-    def __init__ (self, scan_domain, thread_count=100,is_output=False, black_ip=list()):
+    def __init__ (self, scan_domain, thread_count=100,is_output=False, black_ip=list(), is_private=False):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
         self.resolver = resolver
         self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
@@ -252,6 +266,8 @@ class ExhaustionScan(object):
         self.black_ip = black_ip
         # {ip:{ domains: [域名], count: 计数}  }
         self.ip_domain_count_dict = dict()
+        # 内网ip
+        self.is_private = is_private
 
     def load_subdomain_dict(self):
         print_info("load sub dict")
@@ -294,9 +310,15 @@ class ExhaustionScan(object):
                 for i in ans.response.answer:
                     for j in i.items:
                         if hasattr(j, "address"):
-                            # 增加对泛解析的操作
-                            if self.remove_black_ip(domain, j.address):
-                                self.domain_ips_dict[domain].append(j.address)
+                            # 增加对内网ip的判断 if not save private
+                            if not self.is_private:
+                                if not ipaddress.ip_address(j.address).is_private:
+                                    # 增加对泛解析的操作 
+                                    if self.remove_black_ip(domain, j.address):
+                                        self.domain_ips_dict[domain].append(j.address)
+                            else: # 如果对内网结果进行保存 
+                                if self.remove_black_ip(domain, j.address):
+                                    self.domain_ips_dict[domain].append(j.address)
         except dns.resolver.NoAnswer:
             pass
         except dns.exception.Timeout:
@@ -322,7 +344,7 @@ class ExhaustionScan(object):
             return False
         else:# 没有达到阈值
             return True
-                
+
     def worker(self):
         while not self.sub_dict_queue.empty():
             domain = self.sub_dict_queue.get()
@@ -358,4 +380,3 @@ class ExhaustionScan(object):
         print()
         self.sub_dict_queue.join()
         return self.domain_ips_dict
-
