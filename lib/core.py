@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-11 22:05:35
+@LastEditTime: 2019-07-12 15:09:59
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -225,6 +225,7 @@ class EngineScan(object):
                         self.domain_ips_dict.pop(domain)
 
     def remove_private(self):
+        # 移除内网ip
         print_info("del private ip domain")
         for domain in list(self.domain_ips_dict.keys()):
             ips = self.domain_ips_dict[domain]
