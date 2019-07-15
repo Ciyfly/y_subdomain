@@ -12,7 +12,7 @@ from lib.base import Base
 class Scan(Base):
     def __init__(self, scan_domain):
         super().__init__(scan_domain)
-        self.name = "CA"
+        self.name = "ca"
 
     @staticmethod
     def query_a(domain):

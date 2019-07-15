@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 18:05:15
-@LastEditTime: 2019-06-27 17:09:20
+@LastEditTime: 2019-07-15 19:26:26
 '''
 from lib.base import Base
 import requests
@@ -12,7 +12,7 @@ import json
 class Scan(Base):
     def __init__(self, scan_domain):
         super().__init__(scan_domain)
-        self.name = "百度云观测"
+        self.name = "baiduyun"
         self.base_url = "http://ce.baidu.com/index/getRelatedSites?site_address={0}"
 
     def run(self):

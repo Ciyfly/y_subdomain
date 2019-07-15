@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-12 15:09:59
+@LastEditTime: 2019-07-15 19:26:08
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -176,8 +176,8 @@ class EngineScan(object):
         else: # 指定了引擎
             for name in self.engine: # 这里不判断是否开启引擎 直接使用
                 metaclass=importlib.import_module(name)
-                print_info("run script: "+metaclass.Scan(scan_domain).name)
-                result = metaclass.Scan(scan_domain).run()
+                print_info("run script: "+metaclass.Scan(self.scan_domain).name)
+                result = metaclass.Scan(self.scan_domain).run()
                 self.domains_set = self.domains_set | result
                 print_info(f"add {len(result)}  all count: {len(self.domains_set)}")
                         
