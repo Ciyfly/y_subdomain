@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 16:08:13
-@LastEditTime: 2019-06-26 15:20:44
+@LastEditTime: 2019-07-19 17:40:48
 '''
 
 VERSION = "0.1"
@@ -16,7 +16,7 @@ __   __     _____       _    ______                      _
   \ /______|`--. \ | | | '_ \| | | / _ \| '_ ` _ \ / _` | | '_ \ 
   | |      /\__/ / |_| | |_) | |/ / (_) | | | | | | (_| | | | | |
   \_/      \____/ \__,_|_.__/|___/ \___/|_| |_| |_|\__,_|_|_| |_|
-      https://github.com/Ciyfly/Y-SubDomain  By Recar                                                          
+      https://github.com/Ciyfly/Y-SubDomain  Author: @Recar                                                          
 """
 
 

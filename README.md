@@ -31,27 +31,16 @@
 这个地方有进度条功能 可以在实例化穷举类的时候进行选择是否开启  
 
 ## 使用  
-不使用暴力穷举  
 
-![20190628114320.png](https://i.loli.net/2019/06/28/5d158cf51a27539916.png)  
-
-
-使用暴力穷举  
-
-![20190628114417.png](https://i.loli.net/2019/06/28/5d158d2b4118d84421.png)  
-
-
-关闭进度条输出 使用HUP信号获取字典队列大小  
-![20190628114457.png](https://i.loli.net/2019/06/28/5d158d53f159d86830.png)  
-
-
-默认生成的txt在 output目录下  
-可以选择是否生成json  
-选择生成的html如下  
-
-![20190625174349.png](https://i.loli.net/2019/06/25/5d11ece9489dc60057.png)  
+[![asciicast](https://asciinema.org/a/X4z59JQEDziXInYWKptYAIGyz.png)](https://asciinema.org/a/X4z59JQEDziXInYWKptYAIGyz)
 
 ## 版本
+**v1.0.0**  
+修改bug  
+进度条增加find输出  
+增加对内网ip的剔除参数  
+增加指定字典的参数  
+
 **V0.1**  
 采用多接口的形式获取域名 动态插件形式添加接口脚本  
 接口验证和穷举都采用线程池的形式进行dns解析  
@@ -85,7 +74,13 @@ exh_domain_ips_dict = exhaustion_scan.run()
 ```  
 
 ## update
+2019 0719  
+修改bug  
+进度条增加find输出  
+增加对内网ip的剔除参数  
+增加指定字典的参数 
 
+---
 2019 0711  
 增加对内网ip的忽略 默认是清除掉的 可以通过命令行参数进行控制  
 增加指定字典的功能参数  
