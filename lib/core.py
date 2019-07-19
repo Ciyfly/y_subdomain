@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-15 19:26:08
+@LastEditTime: 2019-07-19 17:48:04
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -67,6 +67,7 @@ class SaveDate(object):
             ):
         self.engine_domain_ips_dict = engine_domain_ips_dict
         self.exh_domain_ips_dict = exh_domain_ips_dict
+        self.domain_ips_dict = dict()
         self.clean_data()
         self.scan_domain = scan_domain
         self.is_text = is_text
@@ -94,9 +95,9 @@ class SaveDate(object):
     def get_output(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
         output_dir = os.path.join(base_path, "../", "output", self.scan_domain)
-        print_info(f"output_dir {output_dir}")
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
+        self.out_out_dir = output_dir
         self.output_txt = os.path.join(output_dir, self.scan_domain+".txt")
         self.output_html = os.path.join(output_dir, self.scan_domain+".html")
         self.output_json = os.path.join(output_dir, self.scan_domain+".json")
@@ -126,6 +127,9 @@ class SaveDate(object):
         print_info("save html success")
 
     def save_doamin_ips(self):
+        if not self.domain_ips_dict: # 空的话就不保存文件
+            return
+        print_info(f"output_dir {self.out_out_dir}")
         if self.is_text:
             self.save_text()
         if self.is_json:
