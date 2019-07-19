@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-19 17:48:04
+@LastEditTime: 2019-07-19 18:22:28
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -37,6 +37,7 @@ def ctrl_c(signum,frame):
 def print_queue_size(signum, frame):
     print()
     print(f"[debug] queue size: {frame.f_locals['self'].sub_dict_queue.qsize()}")
+    print(f"[debug] find subdomain: {len(frame.f_locals['self'].domain_ips_dict)}")
 
 # ctrl+c
 signal.signal(signal.SIGINT, ctrl_c)
@@ -389,7 +390,8 @@ class ExhaustionScan(object):
                     '\r'+'[' + '>' * out_l + '-' * out_u +']'
                     + f'{percentage:.2f}%'
                     + f'|size: {self.sub_dict_queue.qsize()}'
-                    + f'|use time: {time.perf_counter() - start:.2f}s', end="")
+                    + f'|use time: {time.perf_counter() - start:.2f}s'
+                    + f'|find: {len(self.domain_ips_dict)} ', end="")
         print()
         self.sub_dict_queue.join()
         return self.domain_ips_dict
