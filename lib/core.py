@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-08-06 21:57:02
+@LastEditTime: 2019-08-06 22:15:42
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -107,12 +107,12 @@ class SaveDate(object):
         with open(self.output_txt, "w") as f:
                 for domain, ips in self.domain_ips_dict.items():
                     f.write(f"{domain}    {ips}\n")
-        print_info("save txt success")
+        print_info("save txt success\n")
 
     def save_json(self):
         with open(self.output_json, "w") as f:
             json.dump(self.domain_ips_dict, f, indent=3)
-        print_info("save json success")
+        print_info("save json success\n")
 
     def save_html(self):
         html = html_head
@@ -125,7 +125,7 @@ class SaveDate(object):
         html += html_style
         with open(self.output_html, "w") as f:
             f.write(html)
-        print_info("save html success")
+        print_info("save html success\n")
 
     def save_doamin_ips(self):
         if not self.domain_ips_dict: # 空的话就不保存文件

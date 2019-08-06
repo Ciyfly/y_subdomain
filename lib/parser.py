@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 16:07:49
-@LastEditTime: 2019-07-11 22:10:09
+@LastEditTime: 2019-08-06 22:14:27
 '''
 from optparse import OptionParser
 from config.config import VERSION, BANNER
@@ -19,6 +19,8 @@ def get_options():
 
     parser.add_option('-c', type=str, dest="sub_dict", help="指定使用的字典 不指定默认使用默认的")
 
+    parser.add_option('-f', type=str, dest="domain_file", help="指定域名列表文件")
+
     parser.add_option('--private',action='store_true', dest="is_private", default=False, help="是否对内网ip进行清除")
 
     parser.add_option('--exh',action='store_true', dest="exhaustion", default=False, help="是否进行暴力穷举")
@@ -29,11 +31,12 @@ def get_options():
 
     parser.add_option('--html',action='store_true', dest="is_html", default=False, help="是否生成html报告")
     (options,args) = parser.parse_args()
-    if  options.domain==None:
+    if  options.domain==None and options.domain_file==None:
         parser.print_help()
         sys.exit(0)
-    if "www" in options.domain or "http://" in options.domain :
-        options.domain =options.domain.replace("www.","").replace("http://", "")
+    if options.domain:
+        if "www" in options.domain or "http://" in options.domain :
+            options.domain =options.domain.replace("www.","").replace("http://", "")
     if options.engine:
         options.engine = options.engine.split(",")
 
