@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-07-19 18:22:28
+@LastEditTime: 2019-08-06 21:57:02
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -13,8 +13,8 @@ from config.html_template import (
     html_body_a, html_body_end, html_style
                 )
 from config.config import DNS_THRESHOLD
-from dns import resolver
 import dns
+from dns import resolver
 import os
 import importlib
 import ipaddress
@@ -146,6 +146,10 @@ class EngineScan(object):
         self.thread_count = thread_count
         # dns
         self.resolver = resolver
+        # self.resolver = dns.resolver.Resolver()
+        # # 设置dns超时时间
+        # self.resolver.timeout = 5
+        # self.resolver.lifetime = 5
         self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
         # 存储变量
         self.domains_set = set()
@@ -196,7 +200,7 @@ class EngineScan(object):
 
     def analysis_dns(self, domain):
         try:
-            ans = self.resolver.query(domain, "A")
+            ans = self.resolver.query(domain, "A", lifetime=10)
             if ans:
                 ips = list()
                 for i in ans.response.answer:
@@ -262,6 +266,7 @@ class ExhaustionScan(object):
         is_private=False, sub_dict=None
         ):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
+        # dns
         self.resolver = resolver
         self.resolver.nameservers=['8.8.8.8', '114.114.114.114']
         self.scan_domain = scan_domain
@@ -298,22 +303,24 @@ class ExhaustionScan(object):
         """
         try:
             ans = self.resolver.query(
-                ''.join(random.sample(string.ascii_lowercase,5))+"."+self.scan_domain , "A"
-                )
+                ''.join(random.sample(string.ascii_lowercase,5))+"."+self.scan_domain , "A",
+                lifetime=10)
             if ans:
                 ips = list()
                 for i in ans.response.answer:
                     for j in i.items:
                             ip = j.to_text()
                             if ip:
-                                return False
+                                return True
         except dns.resolver.NoAnswer:
-            return True
+            return False
         except dns.exception.Timeout:
-            return True
+            return False
+        except dns.resolver.NXDOMAIN:
+            return False
         except Exception as e:
             print(e)
-            return True
+            return False
     
     def analysis_dns(self, domain):
         try:
