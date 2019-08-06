@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-08-06 22:15:42
+@LastEditTime: 2019-08-06 22:27:34
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -58,7 +58,7 @@ def print_debug(message):
     print("[-] {0}".format(message))
 
 def print_error(message):
-    print(("[error] {0}".format(message)))
+    print(("\n[error] {0}".format(message)))
 
 class SaveDate(object):
     """用于保存域名结果"""
@@ -139,7 +139,15 @@ class SaveDate(object):
             self.save_html()
 
 class EngineScan(object):
-    """接口解析类"""
+    """接口解析类
+    :param scan_domain 测试域名
+    :param engine 指定引擎列表 默认全部
+    :param thread_count 线程 默认100
+    :param get_black_ip 是否返回泛解析的ip 默认不返回
+    :param is_private 是否保留内网ip 默认不保留
+    :return domain_ips_dict, (black_ip) 选择返回泛解析ip则有第二个 否则只返回域名对于ip
+    
+    """
     def __init__(self, scan_domain, engine=None, thread_count=100, get_black_ip=False, is_private=False):
         self.scan_domain = scan_domain
         self.engine = engine
@@ -259,11 +267,21 @@ class EngineScan(object):
 
 # 穷举类 
 class ExhaustionScan(object):
-    """暴力穷举"""
+    """暴力穷举
+    :param scan_domain 要测试的域名
+    :param thread_count 线程数 默认100
+    :param is_output 是否输出进度条 默认不输出
+    :param black_ip 泛解析的ip     默认为空
+    :param is_private 是否保留内网ip 默认不保留
+    :param sub_dict 指定的字典 默认读取配置文件下字典 
+    :param timeout 超时时间 默认穷举超时时间为 2h
+    :return domain_ips_dict 域名对应解析的ip结果
+    
+    """
     def __init__ (
         self, scan_domain, thread_count=100,
         is_output=False, black_ip=list(),
-        is_private=False, sub_dict=None
+        is_private=False, sub_dict=None, timeout=7200
         ):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
         # dns
@@ -273,6 +291,7 @@ class ExhaustionScan(object):
         # 默认线程100个
         self.thread_count = thread_count
         self.is_output = is_output
+        self.timeout = timeout
         self.sub_dict = sub_dict
         self.domain_ips_dict = defaultdict(list)
         self.sub_dict_queue = queue.Queue()
@@ -372,7 +391,7 @@ class ExhaustionScan(object):
             if domain is None:
                 break
             self.analysis_dns(domain)
-            self.sub_dict_queue.task_done()
+            # self.sub_dict_queue.task_done()
 
     def run(self):
         # 先进行泛解析判断
@@ -393,12 +412,19 @@ class ExhaustionScan(object):
                 out_u = int(self.sub_dict_queue.qsize()/self.all_size*50) # ##
                 out_l = 50 - out_u
                 percentage = 100-(self.sub_dict_queue.qsize()/self.all_size*100)
+                use_time = time.perf_counter() - start
+                # 设置超时时间 默认2h
+                if use_time> self.timeout:
+                    # 超时直接穷空队列
+                    self.sub_dict_queue.queue.clear()
+                    print_error("timeout 2h exit")
+                    break
                 print(
                     '\r'+'[' + '>' * out_l + '-' * out_u +']'
                     + f'{percentage:.2f}%'
                     + f'|size: {self.sub_dict_queue.qsize()}'
-                    + f'|use time: {time.perf_counter() - start:.2f}s'
+                    + f'|use time: {use_time:.2f}s'
                     + f'|find: {len(self.domain_ips_dict)} ', end="")
         print()
-        self.sub_dict_queue.join()
+        # self.sub_dict_queue.join()
         return self.domain_ips_dict
