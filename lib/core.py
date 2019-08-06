@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-08-06 22:27:34
+@LastEditTime: 2019-08-06 23:02:12
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -36,8 +36,8 @@ def ctrl_c(signum,frame):
 
 def print_queue_size(signum, frame):
     print()
-    print(f"[debug] queue size: {frame.f_locals['self'].sub_dict_queue.qsize()}")
-    print(f"[debug] find subdomain: {len(frame.f_locals['self'].domain_ips_dict)}")
+    print(f"[*] queue size: {frame.f_locals['self'].sub_dict_queue.qsize()}")
+    print(f"[*] find subdomain: {len(frame.f_locals['self'].domain_ips_dict)}")
 
 # ctrl+c
 signal.signal(signal.SIGINT, ctrl_c)
@@ -55,10 +55,10 @@ def print_info(message):
     print(("[+] {0}".format(message)))
 
 def print_debug(message):
-    print("[-] {0}".format(message))
+    print("[*] {0}".format(message))
 
 def print_error(message):
-    print(("\n[error] {0}".format(message)))
+    print(("\n[-] {0}".format(message)))
 
 class SaveDate(object):
     """用于保存域名结果"""
