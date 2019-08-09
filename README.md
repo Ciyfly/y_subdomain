@@ -32,7 +32,7 @@
 
 ## 使用  
 
-[![asciicast](https://asciinema.org/a/1Qt9rtP5cj2bdAV6i2kXHUWQa.png)](https://asciinema.org/a/1Qt9rtP5cj2bdAV6i2kXHUWQa)
+[![asciicast](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD.png)](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD)
 
 ## 版本
 **v1.0.0**  
