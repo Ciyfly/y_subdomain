@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-08-12 17:34:17
+@LastEditTime: 2019-08-13 10:08:29
 '''
 
 from lib.parser import get_options
@@ -66,8 +66,9 @@ def main():
                 print_info(f"开始三级域名穷举")
                 engine_exh_domain = set()
                 # 先去重
-                for domain in engine_domain_ips_dict.keys():
-                    engine_exh_domain.add(domain)
+                if engine_domain_ips_dict:
+                    for domain in engine_domain_ips_dict.keys():
+                        engine_exh_domain.add(domain)
                 for domain in exh_domain_ips_dict.keys():
                     engine_exh_domain.add(domain)
                     
