@@ -36,14 +36,14 @@
 [![asciicast](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD.png)](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD)
 
 ## 版本
-**v1.1.0**  
+**v1.1.0**   
 修改一些bug  
-增加三级四级域名穷举
-修改为默认小字典2w (使用的onforall的字典)
-指定`big_dict` 可以使用大字典200w
-增加可以指定字典参数
-穷举增加超时时间 默认为2h
-dns增加超时时间10s
+增加三级四级域名穷举  
+修改为默认小字典2w (使用的onforall的字典)  
+指定`big_dict` 可以使用大字典200w  
+增加可以指定字典参数  
+穷举增加超时时间 默认为2h  
+dns增加超时时间10s  
 
 **v1.0.0**  
 修改bug  
@@ -75,6 +75,18 @@ engine_scan = EngineScan(scan_domain, engine)
 # scan_domain 为扫描的域名 engine 是指定的接口 空的话就全部都跑 默认也是全部都跑  
 engine_domain_ips_dict = engine_scan.run()
 # 调用 run方法会返回 解析的结果 是 字典形式 子域名对应ip列表  
+
+接口类如下:
+class EngineScan(object):
+    """接口解析类
+    :param scan_domain 测试域名
+    :param engine 指定引擎列表 默认全部
+    :param thread_count 线程 默认100
+    :param get_black_ip 是否返回泛解析的ip 默认不返回
+    :param is_private 是否保留内网ip 默认不保留
+    :return domain_ips_dict, (black_ip) 选择返回泛解析ip则有第二个 否则只返回域名对于ip
+    
+    """
 ```
 使用穷举解析
 ```python
@@ -83,6 +95,21 @@ from lib.core import ExhaustionScan
 exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
 # is_output 是否输出进度条 默认是False的
 exh_domain_ips_dict = exhaustion_scan.run()
+
+穷举类如下:
+class ExhaustionScan(object):
+    """暴力穷举
+    :param scan_domain 要测试的域名
+    :param thread_count 线程数 默认100
+    :param is_output 是否输出进度条 默认不输出
+    :param black_ip 泛解析的ip     默认为空
+    :param is_private 是否保留内网ip 默认不保留
+    :param sub_dict 指定的字典 默认读取配置文件下字典 
+    :param next_sub 是否是三级或者四级的域名扫描
+    :param timeout 超时时间 默认穷举超时时间为 2h
+    :return domain_ips_dict 域名对应解析的ip结果
+    
+    """
 ```  
 
 ## update
