@@ -9,6 +9,7 @@
 ### 为什么要做
 1. 重复造轮子 深入理解轮子 做出更好用的轮子
 2. 是大扫描器的信息收集的一部分功能的实现
+3. 工作中擅于使用轮子 学习中擅于造轮子  
 
 
 ## 实现  
@@ -22,7 +23,7 @@
 **接口引擎脚本完成：**
 1. 百度云检测  
 2. hackertarget
-3. virustotal (需要在config/config.py 中添加api key才能使用不然默认不会执行)
+3. virustotal (**需要在config/config.py 中添加api key才能使用不然默认不会执行**)
 4. 通过证书获取
 
 ### 暴力穷举的实现  
@@ -35,6 +36,15 @@
 [![asciicast](https://asciinema.org/a/X4z59JQEDziXInYWKptYAIGyz.png)](https://asciinema.org/a/X4z59JQEDziXInYWKptYAIGyz)
 
 ## 版本
+**v1.1.0**  
+修改一些bug  
+增加三级四级域名穷举
+修改为默认小字典2w (使用的onforall的字典)
+指定`big_dict` 可以使用大字典200w
+增加可以指定字典参数
+穷举增加超时时间 默认为2h
+dns增加超时时间10s
+
 **v1.0.0**  
 修改bug  
 进度条增加find输出  
@@ -76,6 +86,17 @@ exh_domain_ips_dict = exhaustion_scan.run()
 ```  
 
 ## update
+2019 0813
+修改一些bug  
+增加三级四级域名穷举
+修改为默认小字典2w (使用的onforall的字典)
+指定`big_dict` 可以使用大字典200w
+增加可以指定字典参数
+穷举增加超时时间 默认为2h
+dns增加超时时间10s
+
+---
+
 2019 0719  
 修改bug  
 进度条增加find输出  
@@ -97,6 +118,9 @@ exh_domain_ips_dict = exhaustion_scan.run()
 对于暴力穷举的会默认使用配置文件中的 50 阈值 作为判断泛解析的条件 当超过50个域名指向一个ip进行剔除  
 
 
+# TODO
+多增加几个模块
+优化下代码结构
 
 ## 参考
 
