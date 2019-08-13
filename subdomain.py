@@ -3,11 +3,14 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-08-06 22:12:12
+@LastEditTime: 2019-08-12 17:34:17
 '''
 
 from lib.parser import get_options
-from lib.core import EngineScan, ExhaustionScan, SaveDate, print_log, print_info
+from lib.core import (
+    EngineScan, ExhaustionScan, SaveDate,
+    print_log, print_info, print_progress
+    )
 import time
 import sys
 
@@ -21,6 +24,7 @@ def main():
     is_private = options.is_private
     engine = options.engine
     sub_dict = options.sub_dict
+    big_dict = options.big_dict
     exhaustion = options.exhaustion
     exhaustion_only = options.exhaustion_only
     domains = list()
@@ -44,25 +48,75 @@ def main():
             print_info(f"引擎接口消耗时间:{engine_end}s")
 
         exh_domain_ips_dict = None
+        all_exh_domain_ips_dict = dict()
         if exhaustion or exhaustion_only:
             # 穷举解析
             start = time.perf_counter()
             exhaustion_scan =  ExhaustionScan(
                 scan_domain, thread_count=100,
                 is_output=True, is_private=is_private,
-                sub_dict = sub_dict
+                sub_dict = sub_dict, big_dict=big_dict
                 )
             exh_domain_ips_dict = exhaustion_scan.run()
             if exh_domain_ips_dict:
-                print_info(len(exh_domain_ips_dict))
+                print_info(f"穷举发现 : {len(exh_domain_ips_dict)}")
+                all_exh_domain_ips_dict.update(exh_domain_ips_dict)
                 exh_end = (time.perf_counter() - start)
                 print_info(f"穷举消耗时间:{exh_end}s")
-        
+                print_info(f"开始三级域名穷举")
+                engine_exh_domain = set()
+                # 先去重
+                for domain in engine_domain_ips_dict.keys():
+                    engine_exh_domain.add(domain)
+                for domain in exh_domain_ips_dict.keys():
+                    engine_exh_domain.add(domain)
+                    
+                # 三级域名穷举
+                three_exh_domain_ips_dict = dict()
+                # all size 用于输出进度条
+                all_size = len(engine_exh_domain)
+                start = time.perf_counter()
+                for i, domain in enumerate(engine_exh_domain):
+                    
+                    next_exhaustion_scan =  ExhaustionScan(
+                        domain, thread_count=100,
+                        is_output=False, is_private=is_private,
+                        next_sub=True
+                        )
+                    # run & update result echo progress
+                    next_exh_domain_ips_dict = next_exhaustion_scan.run()
+                    three_exh_domain_ips_dict.update(next_exh_domain_ips_dict)
+                    all_exh_domain_ips_dict.update(next_exh_domain_ips_dict)
+                    # 输出进度条
+                    print_progress(all_size-i, all_size, start, len(three_exh_domain_ips_dict))
+                print()
+                print_info(f"三级域名穷举发现 : {len(three_exh_domain_ips_dict)}")
+                # 如果穷举的三级域名有结果则进行四级域名穷举
+                four_exh_domain_ips_dict = dict()
+                all_size = len(three_exh_domain_ips_dict)
+                start = time.perf_counter()
+                if three_exh_domain_ips_dict:
+                    print_info("开始四级域名穷举")
+                    for i, domain in enumerate(three_exh_domain_ips_dict.keys()):
+                        next_exhaustion_scan =  ExhaustionScan(
+                            domain, thread_count=100,
+                            is_output=False, is_private=is_private,
+                            next_sub=True
+                            )
+                        next_exh_domain_ips_dict = next_exhaustion_scan.run()
+                        four_exh_domain_ips_dict.update(next_exh_domain_ips_dict)
+                        all_exh_domain_ips_dict.update(next_exh_domain_ips_dict)
+                    # 输出进度条
+                    print_progress(all_size-i, all_size, start, len(four_exh_domain_ips_dict))
+                    print()
+                    print_info(f"四级域名穷举发现: {len(four_exh_domain_ips_dict)}")
+            print_info(f"所有穷举发现: {len(all_exh_domain_ips_dict)}")
+            
         # 保存结果  
         save_data = SaveDate(
             scan_domain,
             engine_domain_ips_dict= engine_domain_ips_dict,
-            exh_domain_ips_dict=exh_domain_ips_dict,
+            exh_domain_ips_dict=all_exh_domain_ips_dict,
             is_text=True,
             is_json=is_json,
             is_html=is_html

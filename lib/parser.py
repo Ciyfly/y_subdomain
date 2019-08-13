@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 16:07:49
-@LastEditTime: 2019-08-06 22:14:27
+@LastEditTime: 2019-08-12 17:09:29
 '''
 from optparse import OptionParser
 from config.config import VERSION, BANNER
@@ -19,13 +19,17 @@ def get_options():
 
     parser.add_option('-c', type=str, dest="sub_dict", help="指定使用的字典 不指定默认使用默认的")
 
-    parser.add_option('-f', type=str, dest="domain_file", help="指定域名列表文件")
+    parser.add_option('-f', type=str, dest="domain_file", help="指定域名列表文件 默认使用小字典2w")
 
     parser.add_option('--private',action='store_true', dest="is_private", default=False, help="是否对内网ip进行清除")
 
     parser.add_option('--exh',action='store_true', dest="exhaustion", default=False, help="是否进行暴力穷举")
     
     parser.add_option('--exo',action='store_true', dest="exhaustion_only", default=False, help="只进行暴力穷举")
+    
+    parser.add_option('--next',action='store_true', dest="next_sub", default=False, help="默认穷举到三级域名 开启则穷举到四级域名")
+
+    parser.add_option('--big_dict',action='store_true', dest="big_dict", default=False, help="默认使用小字典2w 开启则使用大字典200w")
     
     parser.add_option('--json',action='store_true', dest="is_json", default=False, help="是否生成json报告")
 

@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 17:49:08
-@LastEditTime: 2019-08-06 23:02:12
+@LastEditTime: 2019-08-13 09:30:18
 '''
 
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
@@ -59,6 +59,24 @@ def print_debug(message):
 
 def print_error(message):
     print(("\n[-] {0}".format(message)))
+
+def print_progress(currne_size, all_size, start, find_size):
+    """输出进度条
+    :param currne_size 当前队列大小
+    :param all_size 总体队列大小
+    :param start 开启时间
+    :param find_size 找到多少条
+    """
+    out_u = int(currne_size/all_size*50) # ##
+    out_l = 50 - out_u
+    percentage = 100-(currne_size/all_size*100)
+    use_time = time.perf_counter() - start
+    print(
+        '\r'+'[' + '>' * out_l + '-' * out_u +']'
+        + f'{percentage:.2f}%'
+        + f'|size: {currne_size}'
+        + f'|use time: {use_time:.2f}s'
+        + f'|find: {find_size} ', end="")
 
 class SaveDate(object):
     """用于保存域名结果"""
@@ -253,6 +271,7 @@ class EngineScan(object):
         # 先用script下的接口获取子域名
         self.run_scripts()
         # 对这些接口进行dns解析 获取对应的ip列表
+        print_info("start dns query")
         self.threadpool_dns()
         # 是否保留内网ip结果
         if not self.is_private:
@@ -274,6 +293,7 @@ class ExhaustionScan(object):
     :param black_ip 泛解析的ip     默认为空
     :param is_private 是否保留内网ip 默认不保留
     :param sub_dict 指定的字典 默认读取配置文件下字典 
+    :param next_sub 是否是三级或者四级的域名扫描
     :param timeout 超时时间 默认穷举超时时间为 2h
     :return domain_ips_dict 域名对应解析的ip结果
     
@@ -281,7 +301,8 @@ class ExhaustionScan(object):
     def __init__ (
         self, scan_domain, thread_count=100,
         is_output=False, black_ip=list(),
-        is_private=False, sub_dict=None, timeout=7200
+        is_private=False, sub_dict=None, next_sub=False,
+        big_dict=False, timeout=7200
         ):
         self.base_path  = os.path.dirname(os.path.abspath(__file__))
         # dns
@@ -293,6 +314,8 @@ class ExhaustionScan(object):
         self.is_output = is_output
         self.timeout = timeout
         self.sub_dict = sub_dict
+        self.big_dict = big_dict
+        self.next_sub = next_sub
         self.domain_ips_dict = defaultdict(list)
         self.sub_dict_queue = queue.Queue()
         self.load_subdomain_dict()
@@ -305,15 +328,26 @@ class ExhaustionScan(object):
         self.is_private = is_private
 
     def load_subdomain_dict(self):
-        print_info("load sub dict")
+        if not self.next_sub:
+            print_info("load sub dict")
         if self.sub_dict: # 使用指定的字典 
-            dict_path = self.sub_dict
+            if os.path.exists( self.sub_dict):
+                dict_path = self.sub_dict
+            else:
+                print_error("字典不存在")
         else:
-            dict_path = os.path.join(self.base_path, "../","config", "sub.txt")
+            dict_path = os.path.join(self.base_path, "../","config", "subdomains.txt")
+            # 如果使用大字典
+            if self.big_dict:
+                dict_path = os.path.join(self.base_path, "../","config", "big_subdomains.txt")
+        # 是否是三级或者四级扫描使用 小字典
+        if self.next_sub:
+            dict_path = os.path.join(self.base_path, "../","config", "next_subdomains.txt")
         with open(dict_path, "r") as f:
             for sub in f:
                 self.sub_dict_queue.put(f"{sub.strip()}.{self.scan_domain}")
-        print_info(f"quque all size: {self.sub_dict_queue.qsize()}")
+        if not self.next_sub:
+            print_info(f"quque all size: {self.sub_dict_queue.qsize()}")
 
     def is_analysis(self):
         """ 
@@ -396,7 +430,8 @@ class ExhaustionScan(object):
     def run(self):
         # 先进行泛解析判断
         if self.is_analysis():
-            print_debug("存在泛解析")
+            if not self.next_sub:
+                print_debug("存在泛解析")
         threads = []
         for i in range(self.thread_count):
             t = threading.Thread(target=self.worker)
@@ -404,27 +439,19 @@ class ExhaustionScan(object):
             t.start()
             threads.append(t)
         # 阻塞 等待队列消耗完
-        print_info("start thread ")
+
+        if not self.next_sub:
+            print_info("start thread ")
         start = time.perf_counter()
         while not self.sub_dict_queue.empty():
             time.sleep(1)
             if self.is_output:
-                out_u = int(self.sub_dict_queue.qsize()/self.all_size*50) # ##
-                out_l = 50 - out_u
-                percentage = 100-(self.sub_dict_queue.qsize()/self.all_size*100)
-                use_time = time.perf_counter() - start
-                # 设置超时时间 默认2h
-                if use_time> self.timeout:
-                    # 超时直接穷空队列
-                    self.sub_dict_queue.queue.clear()
-                    print_error("timeout 2h exit")
-                    break
-                print(
-                    '\r'+'[' + '>' * out_l + '-' * out_u +']'
-                    + f'{percentage:.2f}%'
-                    + f'|size: {self.sub_dict_queue.qsize()}'
-                    + f'|use time: {use_time:.2f}s'
-                    + f'|find: {len(self.domain_ips_dict)} ', end="")
-        print()
-        # self.sub_dict_queue.join()
+                # 输出进度条
+                print_progress(
+                    self.sub_dict_queue.qsize(), self.all_size,
+                    start, len(self.domain_ips_dict)
+                    )
+        if not self.next_sub: # 不然下一级扫描的进度条会有问题
+            print() # 最后输出的问题加一个print来实现换行
+        # self.sub_dict_queue.join() # 这里暂时不需要使用队列来阻塞
         return self.domain_ips_dict
