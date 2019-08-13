@@ -33,7 +33,7 @@
 
 ## 使用  
 
-[![asciicast](https://asciinema.org/a/X4z59JQEDziXInYWKptYAIGyz.png)](https://asciinema.org/a/X4z59JQEDziXInYWKptYAIGyz)
+[![asciicast](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD.png)](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD)
 
 ## 版本
 **v1.1.0**  
