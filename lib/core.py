@@ -187,7 +187,12 @@ class EngineScan(object):
         self.ip_domain_count_dict = dict()
         # 去除内网ip
         self.is_private = is_private
-
+    def add_domain(self, domains):
+        # 去除掉其他后缀不是 .scan_domain的域名
+        for domain in domains:
+            if domain.endswith(f".{self.scan_domain}"):
+                self.domains_set.add(domain)
+        
     def run_scripts(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
         scripts_path = os.path.join(base_path, "../","scripts")
@@ -206,7 +211,7 @@ class EngineScan(object):
                         if metaclass.Scan(self.scan_domain).enable:
                             print_info("run script: "+metaclass.Scan(self.scan_domain).name)
                             result = metaclass.Scan(self.scan_domain).run()
-                            self.domains_set = self.domains_set | result
+                            self.add_domain(result)
                             print_info(f"add: {len(result)}  all count: {len(self.domains_set)}")
         else: # 指定了引擎
             for name in self.engine: # 这里不判断是否开启引擎 直接使用
