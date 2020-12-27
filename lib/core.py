@@ -96,10 +96,10 @@ class SaveDate(object):
         self.get_output()
 
     def clean_data(self):
-        if self.engine_domain_ips_dict and self.exh_domain_ips_dict is None:
+        if self.engine_domain_ips_dict and not self.exh_domain_ips_dict:
             # 只有 engine_domain_ips_dict
             self.domain_ips_dict = self.engine_domain_ips_dict
-        elif self.exh_domain_ips_dict and self.engine_domain_ips_dict is None:
+        elif self.exh_domain_ips_dict and not self.engine_domain_ips_dict:
             # 只有 exh_domain_ips_dict
             self.domain_ips_dict = self.exh_domain_ips_dict
         elif self.engine_domain_ips_dict and self.exh_domain_ips_dict:
