@@ -7,7 +7,7 @@ import ssl
 import traceback
 import sys
 sys.path.append("../")
-from lib.base import Base
+from base import Base
 
 class Scan(Base):
     def __init__(self, scan_domain):

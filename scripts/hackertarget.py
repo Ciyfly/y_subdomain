@@ -5,7 +5,7 @@
 @Date: 2019-05-30 18:05:15
 @LastEditTime: 2019-06-27 17:08:55
 '''
-from lib.base import Base
+from base import Base
 import requests
 
 class Scan(Base):
@@ -17,7 +17,7 @@ class Scan(Base):
     def run(self):
         try:
             get_url = self.base_url.format(self.scan_domain)
-            response = requests.get(get_url)
+            response = requests.get(get_urli, timeout=3)
             if response.status_code == 200:
                 for data in response.text.split("\n"):
                     domain = data.split(",")[0]

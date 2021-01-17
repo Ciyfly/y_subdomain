@@ -5,7 +5,7 @@
 @Date: 2019-05-30 18:05:15
 @LastEditTime: 2019-06-27 17:09:51
 '''
-from lib.base import Base
+from base import Base
 import requests
 import json
 

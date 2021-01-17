@@ -5,8 +5,10 @@
 @Date: 2019-05-30 18:05:15
 @LastEditTime: 2019-06-27 17:10:18
 '''
-from lib.base import Base
-from config.config import VIRUSTOTAL_APIKEY
+from base import Base
+import sys
+sys.path.append("..")
+from y_subdomain.config.config import VIRUSTOTAL_APIKEY
 import requests
 import json
 

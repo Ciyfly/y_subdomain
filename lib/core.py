@@ -6,13 +6,16 @@
 @LastEditTime: 2019-08-13 09:30:18
 '''
 
+import sys
+sys.path.append("..")
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 from collections import defaultdict
-from config.html_template import (
+from y_subdomain.config.html_template import (
     html_head, html_title, html_body_head, html_body_title,
     html_body_a, html_body_end, html_style
                 )
-from config.config import DNS_THRESHOLD
+
+from y_subdomain.config.config import DNS_THRESHOLD
 import dns
 from dns import resolver
 import os
