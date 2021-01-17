@@ -69,7 +69,7 @@ dns增加超时时间10s
 # api形式使用  
 使用接口解析
 ```python
-from lib.core import EngineScan
+from y_subdomain.lib.core import EngineScan
 
 engine_scan = EngineScan(scan_domain, engine)
 # scan_domain 为扫描的域名 engine 是指定的接口 空的话就全部都跑 默认也是全部都跑  
@@ -90,8 +90,8 @@ class EngineScan(object):
 ```
 使用穷举解析
 ```python
-from lib.core import ExhaustionScan
-
+from y_subdomain.lib.core import ExhaustionScan
+scan_domain = "测试域名" # 穷举只支持单个域名
 exhaustion_scan =  ExhaustionScan(scan_domain, thread_count=100, is_output=True)
 # is_output 是否输出进度条 默认是False的
 exh_domain_ips_dict = exhaustion_scan.run()
