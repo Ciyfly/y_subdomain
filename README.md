@@ -14,6 +14,10 @@
 
 适用于 扫描器前置信息收集 简单子域名获取 学习等  
 基本使用内置原生库
+
+[![asciicast](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD.png)](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD)
+
+
 ### 泛解析的解决办法
 先测试一个不存在的域名然后是否成功解析
 
@@ -43,9 +47,6 @@
 使用共享队列+多线程的形式进行解析dns 默认线程开启100个  
 这个地方有进度条功能 可以在实例化穷举类的时候进行选择是否开启  
 
-## 使用  
-
-[![asciicast](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD.png)](https://asciinema.org/a/m7mqlsHux1TinM2oWB6D6LZoD)
 
 ## 版本
 **v1.1.0**   
