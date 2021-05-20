@@ -1,6 +1,18 @@
-# Y-SubDomain
+# y_subdomain
 
 子域名获取工具
+
+
+## 使用
+
+使用加速下载
+`git clone https://github.com.cnpmjs.org/Ciyfly/y_subdomain.git`
+
+https://github.com/Ciyfly/y_subdomain/releases
+下载后要修改文件夹名为 y_subdomain
+
+基于python3 linux环境下  
+适用于 扫描器前置信息收集 简单子域名获取 学习等  
 
 ### 泛解析的解决办法
 先测试一个不存在的域名然后是否成功解析
