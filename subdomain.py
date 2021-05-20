@@ -3,13 +3,14 @@
 '''
 @Author: recar
 @Date: 2019-05-15 18:40:51
-@LastEditTime: 2019-08-13 10:08:29
+LastEditTime: 2021-05-20 17:38:54
 '''
 
 from lib.parser import get_options
 from lib.core import (
     EngineScan, ExhaustionScan, SaveDate,
-    print_log, print_info, print_progress
+    print_log, print_info, print_progress,
+    GenSubdomain
     )
 from lib.title import GetTitle
 import time
@@ -30,6 +31,7 @@ def main():
     exhaustion = options.exhaustion
     exhaustion_only = options.exhaustion_only
     get_title = options.get_title
+    gen_rule = options.gen_rule
     domains = list()
     if domain_file:
         with open(domain_file, "r") as f:
@@ -58,7 +60,8 @@ def main():
             exhaustion_scan =  ExhaustionScan(
                 scan_domain, thread_count=100,
                 is_output=True, is_private=is_private,
-                sub_dict = sub_dict, big_dict=big_dict
+                sub_dict = sub_dict, big_dict=big_dict,
+                gen_rule=gen_rule
                 )
             exh_domain_ips_dict = exhaustion_scan.run()
             if exh_domain_ips_dict:
@@ -81,7 +84,7 @@ def main():
                 all_size = len(engine_exh_domain)
                 start = time.perf_counter()
                 for i, domain in enumerate(engine_exh_domain):
-                    
+                    print_info(f"开始测试 {domain}")
                     next_exhaustion_scan =  ExhaustionScan(
                         domain, thread_count=100,
                         is_output=False, is_private=is_private,
@@ -93,7 +96,7 @@ def main():
                     all_exh_domain_ips_dict.update(next_exh_domain_ips_dict)
                     # 输出进度条
                     print_progress(all_size-i, all_size, start, len(three_exh_domain_ips_dict))
-                print()
+                    print()
                 print_info(f"三级域名穷举发现 : {len(three_exh_domain_ips_dict)}")
                 # 如果穷举的三级域名有结果则进行四级域名穷举
                 four_exh_domain_ips_dict = dict()
@@ -115,7 +118,7 @@ def main():
                     print()
                     print_info(f"四级域名穷举发现: {len(four_exh_domain_ips_dict)}")
             print_info(f"所有穷举发现: {len(all_exh_domain_ips_dict)}")
-        
+        print_info("start save result")
         # 保存结果  
         save_data = SaveDate(
             scan_domain,
@@ -125,10 +128,10 @@ def main():
             is_json=is_json,
             is_html=is_html
             )
+        domain_ips_dict = save_data.save_doamin_ips()
         # 增加title
         if not get_title:
-            return
-        domain_ips_dict = save_data.save_doamin_ips()
+            return        
         urls = domain_ips_dict.keys()
         print_info("get title")
         title_result = GetTitle(urls).run()
@@ -138,5 +141,7 @@ def main():
             for title in title_result:
                 f.write(title)
         print_info(f"title save: {title_path}")
+
+
 if __name__ == "__main__":
     main()

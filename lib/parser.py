@@ -3,7 +3,7 @@
 '''
 @Author: recar
 @Date: 2019-05-30 16:07:49
-@LastEditTime: 2019-08-12 17:09:29
+LastEditTime: 2021-05-20 14:56:30
 '''
 from optparse import OptionParser
 from config.config import VERSION, BANNER
@@ -24,6 +24,8 @@ def get_options():
     parser.add_option('--private',action='store_true', dest="is_private", default=False, help="是否对内网ip进行清除")
     
     parser.add_option('--title',action='store_true', dest="get_title", default=False, help="是否直接获取域名的title信息")
+
+    parser.add_option('--gen',action='store_true', dest="gen_rule", default=False, help="是否加上动态规则生成的字典")
 
     parser.add_option('--exh',action='store_true', dest="exhaustion", default=False, help="是否进行暴力穷举")
     
