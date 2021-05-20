@@ -22,6 +22,8 @@ def get_options():
     parser.add_option('-f', type=str, dest="domain_file", help="指定域名列表文件 默认使用小字典2w")
 
     parser.add_option('--private',action='store_true', dest="is_private", default=False, help="是否对内网ip进行清除")
+    
+    parser.add_option('--title',action='store_true', dest="get_title", default=False, help="是否直接获取域名的title信息")
 
     parser.add_option('--exh',action='store_true', dest="exhaustion", default=False, help="是否进行暴力穷举")
     

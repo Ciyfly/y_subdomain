@@ -11,8 +11,10 @@ from lib.core import (
     EngineScan, ExhaustionScan, SaveDate,
     print_log, print_info, print_progress
     )
+from lib.title import GetTitle
 import time
 import sys
+import os
 
 def main():
     # 获取命令行参数  
@@ -27,6 +29,7 @@ def main():
     big_dict = options.big_dict
     exhaustion = options.exhaustion
     exhaustion_only = options.exhaustion_only
+    get_title = options.get_title
     domains = list()
     if domain_file:
         with open(domain_file, "r") as f:
@@ -112,7 +115,7 @@ def main():
                     print()
                     print_info(f"四级域名穷举发现: {len(four_exh_domain_ips_dict)}")
             print_info(f"所有穷举发现: {len(all_exh_domain_ips_dict)}")
-            
+        
         # 保存结果  
         save_data = SaveDate(
             scan_domain,
@@ -122,7 +125,18 @@ def main():
             is_json=is_json,
             is_html=is_html
             )
-        save_data.save_doamin_ips()
-
+        # 增加title
+        if not get_title:
+            return
+        domain_ips_dict = save_data.save_doamin_ips()
+        urls = domain_ips_dict.keys()
+        print_info("get title")
+        title_result = GetTitle(urls).run()
+        print_info(f"title get count: {len(title_result)}")
+        title_path = os.path.join(save_data.out_out_dir, "title.txt")
+        with open(title_path, "w") as f:
+            for title in title_result:
+                f.write(title)
+        print_info(f"title save: {title_path}")
 if __name__ == "__main__":
     main()

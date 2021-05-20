@@ -158,6 +158,7 @@ class SaveDate(object):
             self.save_json()
         if self.is_html:
             self.save_html()
+        return self.domain_ips_dict
 
 class EngineScan(object):
     """接口解析类
