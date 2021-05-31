@@ -26,6 +26,7 @@ def main():
     is_json = options.is_json
     is_private = options.is_private
     engine = options.engine
+    thread_count = options.thread_count
     sub_dict = options.sub_dict
     big_dict = options.big_dict
     exhaustion = options.exhaustion
@@ -33,6 +34,8 @@ def main():
     get_title = options.get_title
     gen_rule = options.gen_rule
     domains = list()
+    if not thread_count:
+        thread_count = 500
     if domain_file:
         with open(domain_file, "r") as f:
             for domain in f:
@@ -58,7 +61,7 @@ def main():
             # 穷举解析
             start = time.perf_counter()
             exhaustion_scan =  ExhaustionScan(
-                scan_domain, thread_count=100,
+                scan_domain, thread_count=thread_count,
                 is_output=True, is_private=is_private,
                 sub_dict = sub_dict, big_dict=big_dict,
                 gen_rule=gen_rule
