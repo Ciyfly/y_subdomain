@@ -78,9 +78,8 @@ def main():
                 if engine_domain_ips_dict:
                     for domain in engine_domain_ips_dict.keys():
                         engine_exh_domain.add(domain)
-                for domain in exh_domain_ips_dict.keys():
+                for domain in list(exh_domain_ips_dict.keys()):
                     engine_exh_domain.add(domain)
-                    
                 # 三级域名穷举
                 three_exh_domain_ips_dict = dict()
                 # all size 用于输出进度条
